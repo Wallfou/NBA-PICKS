@@ -78,10 +78,43 @@ class NBAAnalyzer:
             return 0.85 + (trend * 1.5)
         else: 
             return max(0.7, 0.85 + trend)
+
+    def _get_trend_direction(self, stats: np.ndarray) -> str:
+        if len(stats) < 6:
+            return 'neutral'
         
+        last_5_avg = np.mean(stats[-5:])
+        prev_5_avg = np.mean(stats[5:10])
+
+        if last_5_avg > prev_5_avg * 1.05:
+            return 'up'
+        elif last_5_avg < prev_5_avg * 0.95:
+            return 'down'
+        else:
+            return 'neutral'
 
 
+    def _calculate_consistency(self, stats: np.ndarray) -> float:
+        average = np.mean(stats)
+        if average == 0:
+            return 0
+        std_dev = np.std(stats)
+        cov = std_dev / average
 
+        consistency = max(0, min(1, 1 - (cov - 0.2) / 0.3))
+        return consistency
+
+    def _calculate_cushion(self, stats: np.ndarray, line: float) -> float:
+        average = np.mean(stats)
+        if line == 0:
+            return 0.5
+        
+        dist = (average - line) / line
+
+        if dist >= 0:
+            return min(1.0, 0.5 + (dist * 5))
+        else:
+            return min(1.0, 0.5 + (abs(dist) * 5))
         
     def _empty_confidence(self) -> Dict:
         return {
@@ -94,4 +127,46 @@ class NBAAnalyzer:
             'pick': 'N/A',
             'recent_games': []
         }
+    
+    def analyze_player(self, game_logs: pd.DataFrame, player_name: str, prop_lines: Dict[str, float]) -> List[Dict]:
+        predicts = []
+        for stat_type, prop_line in prop_lines.items():
+            if stat_type not in self.STAT_COLS:
+                continue
+            confidence = self.calculate_confidence(game_logs, prop_line, stat_type)
+            prediction = {
+                'player_name': player_name,
+                'stat_type': stat_type,
+                'line': prop_line,
+                **confidence
+            }
+
+            predicts.append(prediction)
+        return predicts
+    
+    def rank_picks(self, predictions: List[Dict], min_confidence: float = 60.0, top_n: int = 5) -> List[Dict]:
+        min_confidence_filtered = [p for p in predictions if p['confidence'] >= min_confidence]
+        sorted_picks = sorted(min_confidence_filtered, key=lambda x: x['confidence'])
+        return sorted_picks[:top_n]
+
+    def generate_picks(self, pick: Dict) -> str:
+        player = pick['player_name']
+        stat = pick['stat_type']
+        line = pick['line']
+        prediction = pick['pick']
+        confidence = pick['confidence']
+        hit_rate = pick['hit_rate']
+        average = pick['average']
+
+        summary = (
+            f"{player} {stat} {line} "
+            f"(Confidence: {confidence}%)\n"
+            f" - Average: {average}\n"
+            f" - Hit Rate: {hit_rate}\n"
+            f"Trend: {pick['trend']}"
+        )
+
+        return summary
+
+    
     
