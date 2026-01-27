@@ -31,7 +31,11 @@ class NBAAnalyzer:
         if (len(recent_stats) == 0):
             return self._empty_confidence()
 
-        hit_rate = self._calculate_hit_rate(recent_stats, prop_line)
+        average = np.mean(recent_stats)
+        pick_direction = 'OVER' if average > prop_line else 'UNDER'
+        
+        # Calculate hit rate based on pick direction
+        hit_rate = self._calculate_hit_rate(recent_stats, prop_line, pick_direction)
         trend_score = self._calculate_trend(recent_stats)
         consistency_score = self._calculate_consistency(recent_stats)
         cushion_score = self._calculate_cushion(recent_stats, prop_line)
@@ -43,9 +47,8 @@ class NBAAnalyzer:
             cushion_score * self.WEIGHTS['cushion']
         )
 
-        average = np.mean(recent_stats)
         std_dev = np.std(recent_stats)
-        last_5_avg = np.mean(recent_stats[-5:])
+        last_5_avg = np.mean(recent_stats[:5])
 
         return {
             'confidence': round(confidence * 100, 1),
@@ -54,13 +57,20 @@ class NBAAnalyzer:
             'last_5_avg': round(last_5_avg, 1),
             'std_dev': round(std_dev, 2),
             'trend': self._get_trend_direction(recent_stats),
-            'pick': 'OVER' if average > prop_line else 'UNDER',
+            'pick': pick_direction,
             'recent_games': recent_stats.tolist()[:10]
         }
 
-    def _calculate_hit_rate(self, stats: np.ndarray, line: float) -> float:
-        hits = np.sum(stats > line)
-        return hits / len(stats) if len(stats) > 0 else 0
+    def _calculate_hit_rate(self, stats: np.ndarray, line: float, pick_direction: str) -> float:
+        if len(stats) == 0:
+            return 0
+        
+        if pick_direction == 'OVER':
+            hits = np.sum(stats > line)
+        else:  # UNDER
+            hits = np.sum(stats < line)
+        
+        return hits / len(stats)
 
     def _calculate_trend(self, stats: np.ndarray) -> str:
         if len(stats) < 6:
@@ -146,7 +156,7 @@ class NBAAnalyzer:
     
     def rank_picks(self, predictions: List[Dict], min_confidence: float = 60.0, top_n: int = 5) -> List[Dict]:
         min_confidence_filtered = [p for p in predictions if p['confidence'] >= min_confidence]
-        sorted_picks = sorted(min_confidence_filtered, key=lambda x: x['confidence'])
+        sorted_picks = sorted(min_confidence_filtered, key=lambda x: x['confidence'], reverse=True)
         return sorted_picks[:top_n]
 
     def generate_picks(self, pick: Dict) -> str:
@@ -159,10 +169,10 @@ class NBAAnalyzer:
         average = pick['average']
 
         summary = (
-            f"{player} {stat} {line} "
+            f"{player} {stat} {prediction} {line} "
             f"(Confidence: {confidence}%)\n"
             f" - Average: {average}\n"
-            f" - Hit Rate: {hit_rate}\n"
+            f" - {prediction} Hit Rate: {hit_rate}%\n"
             f"Trend: {pick['trend']}"
         )
 
