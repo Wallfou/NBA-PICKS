@@ -15,9 +15,9 @@ class NBAAnalyzer:
     }
 
     WEIGHTS = {
-        'hit_rate': 0.45,
-        'trend': 0.20,
-        'consistency': 0.20,
+        'hit_rate': 0.65,
+        'trend': 0.10,
+        'consistency': 0.1,
         'cushion': 0.15
     }
 
@@ -67,7 +67,7 @@ class NBAAnalyzer:
         
         if pick_direction == 'OVER':
             hits = np.sum(stats > line)
-        else:  # UNDER
+        else:
             hits = np.sum(stats < line)
         
         return hits / len(stats)
