@@ -5,10 +5,11 @@ Optimized for premium subscription with access to all bookmakers
 
 import requests
 from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
 import os
 from pathlib import Path
 import time
+from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 
 # loading env vars manually
 def load_env_file():
@@ -40,47 +41,41 @@ class OddsFetcher:
         self.base_url = "https://api.the-odds-api.com/v4"
         
     def get_nba_events(self, today_only: bool = True) -> List[Dict]:
-        """
-        Get list of NBA events/games
-        
-        Args:
-            today_only: If True, only return games starting today (next 24 hours)
-        """
         if not self.api_key:
             raise ValueError("API key not set")
-            
+
         url = f"{self.base_url}/sports/basketball_nba/events"
+
         params = {
-            'apiKey': self.api_key,
-            'dateFormat': 'iso'
+            "apiKey": self.api_key,
+            "dateFormat": "iso",
         }
-        
+
+        if today_only:
+            ny = ZoneInfo("America/New_York")
+            now_ny = datetime.now(ny)
+
+            start_ny = now_ny.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_ny = start_ny + timedelta(days=1)
+
+            start_utc = start_ny.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            end_utc = end_ny.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+            params["commenceTimeFrom"] = start_utc
+            params["commenceTimeTo"] = end_utc
+
         try:
             response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
-            all_events = response.json()
-            
-            if not today_only:
-                print(f"Found {len(all_events)} upcoming NBA games")
-                return all_events
-            
-            now = datetime.now(timezone.utc)
-            cutoff = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-            
-            today_events = []
-            for event in all_events:
-                commence_time_str = event.get('commence_time')
-                if commence_time_str:
-                    try:
-                        commence_time = datetime.fromisoformat(commence_time_str.replace('Z', '+00:00'))
-                        if now <= commence_time <= cutoff:
-                            today_events.append(event)
-                    except ValueError:
-                        continue
-            
-            print(f"Found {len(today_events)} games today")
-            return today_events
-            
+            events = response.json()
+
+            if today_only:
+                print(f"Found {len(events)} games today (NY date)")
+            else:
+                print(f"Found {len(events)} upcoming NBA games")
+
+            return events
+
         except requests.exceptions.RequestException as e:
             print(f"Error fetching events: {e}")
             return []
@@ -137,7 +132,6 @@ class OddsFetcher:
                         if not player_name or line is None:
                             continue
                         
-                        # Initialize player with event context
                         if player_name not in player_props:
                             player_props[player_name] = {
                                 'event_id': event_info['event_id'],
@@ -147,11 +141,9 @@ class OddsFetcher:
                                 'props': {}
                             }
                         
-                        # Initialize stat type if not exists
                         if stat_type not in player_props[player_name]['props']:
                             player_props[player_name]['props'][stat_type] = []
                         
-                        # Add this line with bookmaker info
                         player_props[player_name]['props'][stat_type].append({
                             'line': float(line),
                             'bookmaker': bookmaker_name,
@@ -352,7 +344,7 @@ def get_odds_fetcher(use_real_api: bool = True):
     api_key = os.getenv('ODDS_API_KEY')
     
     if use_real_api and api_key:
-        print("Using Odds API w premium subscription")
+        print("Using Odds API")
         return OddsFetcher(api_key=api_key)
     else:
         print("No API key found")
@@ -381,11 +373,8 @@ def convert_to_simple_format(player_props: Dict[str, Dict]) -> Dict[str, Dict[st
     return simple_props
 
 
-if __name__ == "__main__":
-    print("Testing OddsFetcher...\n")
-    
-    fetcher = get_odds_fetcher(use_real_api=False)
-    
+if __name__ == "__main__":    
+    fetcher = get_odds_fetcher(use_real_api=True)
     props = fetcher.get_all_player_props()
     
     print(f"RESULTS: Found props for {len(props)} players")
