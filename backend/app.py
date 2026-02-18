@@ -347,7 +347,7 @@ def get_player_picks(player_name):
 
 @app.route('/api/games/today')
 def get_today_games():
-    """Get today's NBA games"""
+    """Get next available NBA games (today or nearest future date with games)"""
     try:
         games_df = fetcher.get_today_games()
         games = games_df.to_dict('records')
@@ -356,7 +356,7 @@ def get_today_games():
             'success': True,
             'count': len(games),
             'games': games,
-            'date': datetime.now().strftime('%Y-%m-%d')
+            'date': fetcher.resolved_game_date or datetime.now().strftime('%Y-%m-%d')
         })
     except Exception as e:
         return jsonify({

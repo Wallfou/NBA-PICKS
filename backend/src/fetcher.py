@@ -1,16 +1,34 @@
 from nba_api.stats.endpoints import scoreboardv2, playergamelog
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 
 class NBAFetcher:
     def __init__(self):
-        pass
+        self.resolved_game_date = None
 
-    def get_today_games(self):
-        today = datetime.now().strftime('%Y-%m-%d')
-        board = scoreboardv2.ScoreboardV2(game_date=today)
+    def get_today_games(self, max_lookahead_days: int = 7):
+        base_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
-        return board.game_header.get_data_frame()
+        for day_offset in range(max_lookahead_days):
+            check_date = base_date + timedelta(days=day_offset)
+            date_str = check_date.strftime('%Y-%m-%d')
+
+            board = scoreboardv2.ScoreboardV2(game_date=date_str)
+            df = board.game_header.get_data_frame()
+
+            if not df.empty:
+                if day_offset == 0:
+                    print(f"Found {len(df)} games today ({date_str})")
+                else:
+                    print(f"No games today. Found {len(df)} games on {date_str} (+{day_offset} day{'s' if day_offset > 1 else ''})")
+                self.resolved_game_date = date_str
+                return df
+
+            print(f"No games on {date_str}, checking next day...")
+
+        print(f"No games found within the next {max_lookahead_days} days")
+        self.resolved_game_date = None
+        return pd.DataFrame()
 
     def get_player_stats(self, player_id, num_games=15):
         log = playergamelog.PlayerGameLog(

@@ -40,45 +40,66 @@ class OddsFetcher:
         self.api_key = api_key or os.getenv('ODDS_API_KEY')
         self.base_url = "https://api.the-odds-api.com/v4"
         
-    def get_nba_events(self, today_only: bool = True) -> List[Dict]:
+    def get_nba_events(self, today_only: bool = True, max_lookahead_days: int = 7) -> List[Dict]:
         if not self.api_key:
             raise ValueError("API key not set")
 
         url = f"{self.base_url}/sports/basketball_nba/events"
+        ny = ZoneInfo("America/New_York")
 
-        params = {
-            "apiKey": self.api_key,
-            "dateFormat": "iso",
-        }
-
-        if today_only:
-            ny = ZoneInfo("America/New_York")
-            now_ny = datetime.now(ny)
-
-            start_ny = now_ny.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_ny = start_ny + timedelta(days=1)
-
-            start_utc = start_ny.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-            end_utc = end_ny.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-            params["commenceTimeFrom"] = start_utc
-            params["commenceTimeTo"] = end_utc
-
-        try:
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
-            events = response.json()
-
-            if today_only:
-                print(f"Found {len(events)} games today (NY date)")
-            else:
+        if not today_only:
+            params = {
+                "apiKey": self.api_key,
+                "dateFormat": "iso",
+            }
+            try:
+                response = requests.get(url, params=params, timeout=10)
+                response.raise_for_status()
+                events = response.json()
                 print(f"Found {len(events)} upcoming NBA games")
+                return events
+            except requests.exceptions.RequestException as e:
+                print(f"Error fetching events: {e}")
+                return []
 
-            return events
+        now_ny = datetime.now(ny)
+        base_date = now_ny.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching events: {e}")
-            return []
+        for day_offset in range(max_lookahead_days):
+            check_date = base_date + timedelta(days=day_offset)
+            date_label = check_date.strftime("%Y-%m-%d")
+
+            start_utc = check_date.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            end_utc = (check_date + timedelta(days=1)).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+            params = {
+                "apiKey": self.api_key,
+                "dateFormat": "iso",
+                "commenceTimeFrom": start_utc,
+                "commenceTimeTo": end_utc,
+            }
+
+            try:
+                response = requests.get(url, params=params, timeout=10)
+                response.raise_for_status()
+                events = response.json()
+
+                if events:
+                    if day_offset == 0:
+                        print(f"Found {len(events)} games today ({date_label})")
+                    else:
+                        print(f"No games today. Found {len(events)} games on {date_label} (+{day_offset} day{'s' if day_offset > 1 else ''})")
+                    self._resolved_game_date = date_label
+                    return events
+
+                print(f"No games on {date_label}, checking next day...")
+
+            except requests.exceptions.RequestException as e:
+                print(f"Error fetching events for {date_label}: {e}")
+                return []
+
+        print(f"No games found within the next {max_lookahead_days} days")
+        return []
     
     def get_event_odds(self, event_id: str, markets: List[str]) -> Dict:
         

@@ -19,12 +19,12 @@
 .nav-logo {
   font-size: 1.5rem;
   font-weight: bold;
-  color: white;
+  color: #338f4a;
   text-decoration: none;
 }
 
 .nav-logo:hover {
-  color: white;
+  color: #338f4a;
 }
 
 .nav-menu {
@@ -49,12 +49,12 @@
 
 .nav-link:hover {
   background-color: #2a2a2a;
-  color: #646cff;
+  color: #338f4a;
 }
 
 .nav-link.active {
-  color: #646cff;
-  background-color: rgba(100, 108, 255, 0.1);
+  color: #338f4a;
+  background-color: rgba(51, 143, 74, 0.1);
 }
 
 @media (prefers-color-scheme: light) {
