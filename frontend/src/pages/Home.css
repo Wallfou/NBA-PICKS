@@ -1,0 +1,341 @@
+.home {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Hero Section */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  position: relative;
+}
+
+.hero-content {
+  margin-bottom: 4rem;
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #646cff 0%, #7c84ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  color: #999;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Stat cards with horizontal scroll effect */
+.hero-stats-container {
+  width: 100%;
+  overflow: hidden;
+  max-width: 1200px;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.stat-card {
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  border-color: #646cff;
+}
+
+.stat-card svg {
+  color: #646cff;
+  margin-bottom: 1rem;
+}
+
+.stat-card h3 {
+  font-size: 2rem;
+  margin: 0.5rem 0;
+  color: #fff;
+}
+
+.stat-card p {
+  color: #999;
+  margin: 0;
+}
+
+/* How It Works Section */
+.how-it-works {
+  padding: 8rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+
+.how-it-works h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  text-align: center;
+  margin-bottom: 4rem;
+  background: linear-gradient(135deg, #646cff 0%, #7c84ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Horizontal scrolling steps */
+.steps-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.steps {
+  display: flex;
+  gap: 3rem;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.step {
+  min-width: 300px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.step:hover {
+  transform: translateY(-10px);
+  border-color: #646cff;
+  background: rgba(100, 108, 255, 0.05);
+}
+
+.step-number {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #646cff 0%, #7c84ff 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+
+.step h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.step p {
+  color: #999;
+  line-height: 1.6;
+}
+
+/* Tech Stack Section */
+.tech-stack {
+  padding: 8rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tech-stack h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  text-align: center;
+  margin-bottom: 4rem;
+  background: linear-gradient(135deg, #646cff 0%, #7c84ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.tech-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.tech-item:hover {
+  transform: translateY(-5px);
+  border-color: #646cff;
+}
+
+.tech-item h4 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #646cff;
+}
+
+.tech-item ul {
+  list-style: none;
+  padding: 0;
+}
+
+.tech-item li {
+  color: #999;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tech-item li:last-child {
+  border-bottom: none;
+}
+
+/* Contact Section */
+.contact {
+  padding: 8rem 2rem 4rem;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.contact h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, #646cff 0%, #7c84ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.contact-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.contact-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.contact-link:hover {
+  background: rgba(100, 108, 255, 0.1);
+  border-color: #646cff;
+  color: #646cff;
+}
+
+.contact-text {
+  color: #666;
+  margin-top: 3rem;
+  font-size: 0.9rem;
+}
+
+/* Light Mode Support */
+@media (prefers-color-scheme: light) {
+  .hero {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e5e5e5 100%);
+  }
+
+  .hero-title,
+  .how-it-works h2,
+  .tech-stack h2,
+  .contact h2 {
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-subtitle,
+  .step p,
+  .tech-item li {
+    color: #666;
+  }
+
+  .stat-card,
+  .step,
+  .tech-item {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .stat-card h3,
+  .step h3 {
+    color: #213547;
+  }
+
+  .contact-link {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #213547;
+  }
+
+  .how-it-works {
+    background: rgba(0, 0, 0, 0.02);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .steps {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .step {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-stats {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stat-card {
+    min-width: 250px;
+  }
+
+  .tech-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-links {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .contact-link {
+    width: 200px;
+  }
+}
