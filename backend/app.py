@@ -51,6 +51,14 @@ picks_cache = {
     'ttl': 10800
 }
 
+# cache for 20 minutes
+games_cache = {
+    'data': None,
+    'date': None,
+    'timestamp': None,
+    'ttl': 1200
+}
+
 
 def get_player_id_mapping():
     """
@@ -349,14 +357,30 @@ def get_player_picks(player_name):
 def get_today_games():
     """Get next available NBA games (today or nearest future date with games)"""
     try:
+        if games_cache['data'] and games_cache['timestamp']:
+            age = (datetime.now() - games_cache['timestamp']).total_seconds()
+            if age < games_cache['ttl']:
+                print(f"Using cached games (age: {int(age)}s)")
+                return jsonify({
+                    'success': True,
+                    'count': len(games_cache['data']),
+                    'games': games_cache['data'],
+                    'date': games_cache['date']
+                })
+
         games_df = fetcher.get_today_games()
         games = games_df.to_dict('records')
+        resolved_date = fetcher.resolved_game_date or datetime.now().strftime('%Y-%m-%d')
+
+        games_cache['data'] = games
+        games_cache['date'] = resolved_date
+        games_cache['timestamp'] = datetime.now()
         
         return jsonify({
             'success': True,
             'count': len(games),
             'games': games,
-            'date': fetcher.resolved_game_date or datetime.now().strftime('%Y-%m-%d')
+            'date': resolved_date
         })
     except Exception as e:
         return jsonify({

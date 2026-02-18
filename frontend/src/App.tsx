@@ -4,6 +4,7 @@ import NavBar from './components/NavBar';
 import Home from './pages/Home';
 import Picks from './pages/Picks';
 import Players from './pages/Players';
+import Games from './pages/Games';
 import './App.css';
 
 const AnimatedRoutes = () => {
@@ -47,6 +48,20 @@ const AnimatedRoutes = () => {
               transition={pageTransition}
             >
               <Picks />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/games"
+          element={
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <Games />
             </motion.div>
           }
         />

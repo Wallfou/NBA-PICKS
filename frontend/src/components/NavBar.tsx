@@ -10,7 +10,6 @@ const NavBar = () => {
   return (
     <motion.nav 
       className="navbar"
-      initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
     >
@@ -41,6 +40,16 @@ const NavBar = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 Picks
+              </motion.span>
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/games" className={`nav-link ${isActive('/games') ? 'active' : ''}`}>
+              <motion.span
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Games
               </motion.span>
             </Link>
           </li>
