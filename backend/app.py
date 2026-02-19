@@ -51,12 +51,12 @@ picks_cache = {
     'ttl': 10800
 }
 
-# cache for 20 minutes
+# cache for 40 minutes
 games_cache = {
     'data': None,
     'date': None,
     'timestamp': None,
-    'ttl': 1200
+    'ttl': 2400
 }
 
 

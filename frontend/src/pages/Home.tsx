@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Github, Mail, Linkedin } from 'lucide-react';
 import { useRef } from 'react';
+import step1Img from '../assets/Step1.png';
 import './Home.css';
 
 const playerNameRows = [
@@ -112,7 +113,7 @@ const Home = () => {
                 </p>
               </div>
               <div className="step-image">
-                <img src="https://placehold.co/400x260/1a1a1a/338f4a?text=IMAGE" alt="Fetch real-time data" />
+                <img src={step1Img} alt="Fetch real-time data" />
               </div>
             </div>
 
@@ -211,7 +212,7 @@ const Home = () => {
 
         <div className="contact-links">
           <motion.a 
-            href="https://github.com/yourusername" 
+            href="https://github.com/Wallfou" 
             target="_blank" 
             rel="noopener noreferrer"
             className="contact-link"
