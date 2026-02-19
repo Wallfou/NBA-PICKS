@@ -1,17 +1,67 @@
 .games-page {
-  max-width: 1200px;
+  max-width: 90vw;
   margin: 0 auto;
-  padding: 2rem;
   min-height: 80vh;
 }
 
+.games-ticker {
+    position: sticky;
+    top: 70px;
+    z-index: 50;
+    background: rgba(10, 12, 15, 0.85);
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    height: 50px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .games-ticker-track {
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .games-ticker-content {
+    display: inline-flex;
+    white-space: nowrap;
+  
+    animation: ticker-move 30s linear infinite;
+  }
+  
+  .games-ticker-content span {
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(255, 255, 255);
+  }
+  
+  .games-ticker-content span::before {
+    content: "......";
+    color: #ffffff;
+  }
+
+  .games-ticker:hover .games-ticker-content {
+    animation-play-state: paused;
+  }
+  
+  @keyframes ticker-move {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+
 .games-header {
   text-align: center;
+  margin-top: 2rem;
   margin-bottom: 3rem;
 }
 
 .games-header h1 {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: 700;
   background: linear-gradient(135deg, #239e42, #338f4a);
   -webkit-background-clip: text;
@@ -60,7 +110,7 @@
 .game-matchup {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 2rem;
   margin-bottom: 1rem;
 }
 
@@ -69,6 +119,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  align-items: center;
 }
 
 .game-team:last-child {
