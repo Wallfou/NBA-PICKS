@@ -15,6 +15,19 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# helper for sanitizing numeric values
+import math
+def safe_float(x, default=0.0):
+    try:
+        if x is None:
+            return default
+        v = float(x)
+        if math.isnan(v) or math.isinf(v):
+            return default
+        return v
+    except Exception:
+        return default 
+
 # Initialize services
 print("Initializing NBA Props Predictor services...")
 
@@ -57,6 +70,13 @@ games_cache = {
     'date': None,
     'timestamp': None,
     'ttl': 2400
+}
+
+# cache for 24 hours
+players_cache = {
+    'data': None,
+    'timestamp': None,
+    'ttl': 86400
 }
 
 
@@ -383,6 +403,62 @@ def get_today_games():
             'date': resolved_date
         })
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/allPlayers')
+def get_players():
+    """Get all active NBA players with stats (cached 24h)"""
+    try:
+        if players_cache['data'] and players_cache['timestamp']:
+            age = (datetime.now() - players_cache['timestamp']).total_seconds()
+            if age < players_cache['ttl']:
+                print(f"Using cached players (age: {int(age)}s)")
+                return jsonify({
+                    'success': True,
+                    'count': len(players_cache['data']),
+                    'players': players_cache['data']
+                })
+
+        from nba_api.stats.endpoints import playerindex
+
+        print("Fetching player index from NBA API...")
+        idx = playerindex.PlayerIndex(season='2025-26', league_id='00')
+        df = idx.get_data_frames()[0]
+
+        # Keep only active roster players
+        df = df[df['ROSTER_STATUS'] == 1].copy()
+
+        players = []
+        for _, row in df.iterrows():
+            players.append({
+                'id': int(row['PERSON_ID']),
+                'name': f"{row['PLAYER_FIRST_NAME']} {row['PLAYER_LAST_NAME']}",
+                'team': str(row.get('TEAM_ABBREVIATION', '') or ''),
+                'jersey': '' if str(row.get('JERSEY_NUMBER', '')).lower() == 'nan' else str(row.get('JERSEY_NUMBER', '')),
+                'position': str(row.get('POSITION', '') or ''),
+                'pts': round(safe_float(row.get('PTS'), 0.0), 1),
+                'reb': round(safe_float(row.get('REB'), 0.0), 1),
+                'ast': round(safe_float(row.get('AST'), 0.0), 1),
+            })
+
+        players.sort(key=lambda p: p['name'])
+
+        players_cache['data'] = players
+        players_cache['timestamp'] = datetime.now()
+
+        print(f"Fetched {len(players)} active players")
+        return jsonify({
+            'success': True,
+            'count': len(players),
+            'players': players
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)

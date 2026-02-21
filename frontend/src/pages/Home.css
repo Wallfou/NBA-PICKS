@@ -111,8 +111,8 @@
 
 .step-image {
   flex-shrink: 0;
-  width: 600px;
-  height: 400px;
+  width: 650px;
+  height: 350px;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);

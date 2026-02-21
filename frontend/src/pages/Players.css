@@ -1,0 +1,283 @@
+.players-page {
+  max-width: 85vw;
+  margin: 0 auto;
+  min-height: 80vh;
+  padding-bottom: 4rem;
+}
+
+/* Header */
+.players-header {
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.players-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #239e42, #338f4a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.25rem;
+}
+
+.players-subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1.75rem;
+}
+
+/* Search */
+.players-search-wrap {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto 1rem;
+}
+
+.players-search {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1.1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.players-search::placeholder {
+  color: #555;
+}
+
+.players-search:focus {
+  border-color: #338f4a;
+}
+
+.players-search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.players-search-clear:hover {
+  color: #fff;
+}
+
+.players-count {
+  font-size: 0.875rem;
+  color: #555;
+}
+
+/* Table wrapper */
+.players-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Table */
+.players-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.players-table thead tr {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.players-table th {
+  padding: 0.6rem 1rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #555;
+  white-space: nowrap;
+}
+
+.players-table th.col-stat,
+.players-table td.col-stat {
+  text-align: center;
+}
+
+.players-table th.col-num,
+.players-table td.col-num,
+.players-table th.col-pos,
+.players-table td.col-pos {
+  text-align: center;
+}
+
+.players-table th.col-logo,
+.players-table td.col-logo {
+  text-align: center;
+}
+
+/* Rows */
+.player-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.129);
+  transition: background 0.15s ease;
+}
+
+.player-row:hover {
+  background: rgba(60, 129, 77, 0.206);
+}
+
+.players-table td {
+  padding: 0.5rem 1rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Photo */
+.col-photo {
+  width: 56px;
+  padding-right: 0 !important;
+}
+
+.player-headshot {
+  width: 52px;
+  height: 38px;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+
+}
+
+/* Name */
+.col-name {
+  min-width: 160px;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Team abbr */
+.col-team {
+  color: #b2b2b2;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Jersey */
+.col-num {
+  color: #8b8b8b;
+  font-size: 0.85rem;
+  min-width: 40px;
+}
+
+/* Position */
+.col-pos {
+  color: #cdcdcd;
+  font-size: 1rem;
+  min-width: 48px;
+}
+
+/* Stats */
+.col-stat {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.9rem;
+  min-width: 52px;
+}
+
+/* Logo */
+.col-logo {
+  width: 44px;
+}
+
+/* Loading / Error / Empty */
+.players-loading,
+.players-error,
+.players-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh; 
+  font-size: 1.1rem;
+  color: #999;
+}
+
+.players-error {
+  color: #e55;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.players-retry {
+  padding: 0.5rem 1.5rem;
+  background: none;
+  border: 1px solid #338f4a;
+  border-radius: 8px;
+  color: #338f4a;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.players-retry:hover {
+  background: #338f4a;
+  color: #fff;
+}
+
+.players-empty {
+  min-height: 20vh;
+  color: #555;
+}
+
+/* Light Mode */
+@media (prefers-color-scheme: light) {
+  .players-search {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #213547;
+  }
+
+  .players-search::placeholder {
+    color: #aaa;
+  }
+
+  .players-table thead tr {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .player-row {
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .player-name,
+  .col-stat {
+    color: #213547;
+  }
+
+  .player-row:hover {
+    background: rgba(51, 143, 74, 0.05);
+  }
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .players-header h1 {
+    font-size: 2rem;
+  }
+
+  .players-table th,
+  .players-table td {
+    padding: 0.5rem 0.6rem;
+  }
+}

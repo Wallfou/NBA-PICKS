@@ -89,7 +89,7 @@
 
 .game-card {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.139);
   padding: 1.5rem;
   transition: border-color 0.2s ease;
 }
