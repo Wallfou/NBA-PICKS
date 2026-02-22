@@ -19,3 +19,7 @@ Two things to fix:
 Reduce max_workers from 8 down to something like 3–4 to avoid saturating the connection pool
 Add a timeout to the PlayerIndex call in get_players (line 453) so it fails fast and returns a proper error instead of hanging for 30 seconds and returning a 500
 
+Two fixes applied:
+max_workers reduced from 8 → 3 — only 3 concurrent NBA API connections at a time instead of 8, giving other endpoints like /api/allPlayers room to breathe.
+PlayerIndex now retries up to 3 times with a 2-second pause between attempts. If all 3 fail (e.g. during a heavy picks generation run), it returns a 503 with a friendly error message instead of a 500 crash. The frontend's existing retry button on the Players page can then be used to try again once the picks generation finishes.
+

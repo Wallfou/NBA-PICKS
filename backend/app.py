@@ -116,7 +116,9 @@ def get_player_id_mapping():
         'Bam Adebayo': 1628389,
         'Bradley Beal': 203078,
         'Zion Williamson': 1629627,
-        'Brandon Ingram': 1627742
+        'Brandon Ingram': 1627742,
+        'Egot Demin': 183714,
+
     }
     return KNOWN_PLAYERS
 

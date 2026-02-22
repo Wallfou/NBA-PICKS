@@ -17,6 +17,9 @@ class NBAFetcher:
             df = board.game_header.get_data_frame()
 
             if not df.empty:
+                # Deduplicate by GAME_ID — the API can return the same game twice
+                if 'GAME_ID' in df.columns:
+                    df = df.drop_duplicates(subset=['GAME_ID'])
                 if day_offset == 0:
                     print(f"Found {len(df)} games today ({date_str})")
                 else:
