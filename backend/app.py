@@ -433,18 +433,39 @@ def get_today_games():
         }), 500
 
 
+def _filter_players_today(players: list) -> list:
+    """Return only players who have prop lines available for today."""
+    raw_odds = picks_cache.get('raw_odds')
+    if not raw_odds:
+        try:
+            raw_odds = odds_fetcher.get_all_player_props()
+        except Exception:
+            return players
+
+    if not raw_odds:
+        return players
+
+    today_names = {name.lower() for name in raw_odds}
+    return [p for p in players if p['name'].lower() in today_names]
+
+
 @app.route('/api/allPlayers')
 def get_players():
     """Get all active NBA players with stats (cached 24h)"""
     try:
+        today_only = request.args.get('today_only', 'false').lower() == 'true'
+
         if players_cache['data'] and players_cache['timestamp']:
             age = (datetime.now() - players_cache['timestamp']).total_seconds()
             if age < players_cache['ttl']:
                 print(f"Using cached players (age: {int(age)}s)")
+                players = players_cache['data']
+                if today_only:
+                    players = _filter_players_today(players)
                 return jsonify({
                     'success': True,
-                    'count': len(players_cache['data']),
-                    'players': players_cache['data']
+                    'count': len(players),
+                    'players': players
                 })
 
         from nba_api.stats.endpoints import playerindex
@@ -484,11 +505,12 @@ def get_players():
         players_cache['data'] = players
         players_cache['timestamp'] = datetime.now()
 
-        print(f"Fetched {len(players)} active players")
+        filtered = _filter_players_today(players) if today_only else players
+        print(f"Fetched {len(players)} active players ({len(filtered)} playing today)" if today_only else f"Fetched {len(players)} active players")
         return jsonify({
             'success': True,
-            'count': len(players),
-            'players': players
+            'count': len(filtered),
+            'players': filtered
         })
     except Exception as e:
         import traceback

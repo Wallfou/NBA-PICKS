@@ -40,7 +40,7 @@ const Players = () => {
     setError(null);
     const fetchPlayers = async () => {
       try {
-        const res = await fetch("http://localhost:5001/api/allPlayers");
+        const res = await fetch("http://localhost:5001/api/allPlayers?today_only=true");
         const data = await res.json();
         if (data.success) {
           setPlayers(data.players);
@@ -98,7 +98,7 @@ const Players = () => {
       <div className="players-header">
         <h1>Players</h1>
         <p className="players-subtitle">
-          All Active Players in the 2025-26 Season
+          Players with picks available today
         </p>
 
         <div className="players-search-wrap">
