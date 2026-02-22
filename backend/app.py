@@ -8,6 +8,7 @@ from flask_cors import CORS
 from src.fetcher import NBAFetcher
 from src.analyzer import NBAAnalyzer
 from src.odds_fetcher import get_odds_fetcher, convert_to_simple_format
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 import time
 import os
@@ -174,47 +175,75 @@ def generate_all_picks(force_refresh: bool = False):
     
     print("\nMapping player names to IDs...")
     player_id_map = get_player_id_mapping()
-    
+
+    # Resolve player IDs (mostly dict lookup, sequential and fast)
+    resolved = {}   # player_name -> (player_id, prop_lines)
+    skipped_no_id = []
+    for player_name, prop_lines in simple_props.items():
+        player_id = player_id_map.get(player_name)
+        if not player_id:
+            player_id = fetch_player_id_from_nba_api(player_name)
+            if player_id:
+                player_id_map[player_name] = player_id
+        if player_id:
+            resolved[player_name] = (player_id, prop_lines)
+        else:
+            skipped_no_id.append(player_name)
+
+    for name in skipped_no_id[:5]:
+        print(f"skipping {name} (cannot find player id)")
+
+    # Fetch all game logs in parallel with a short timeout
+    print(f"\nFetching game logs for {len(resolved)} players in parallel...")
+
+    def _fetch_logs(item):
+        pname, (pid, _) = item
+        try:
+            time.sleep(0.6)
+            logs = fetcher.get_player_stats(pid, num_games=15, timeout=30)
+            return pname, logs, None
+        except Exception as exc:
+            return pname, None, exc
+
+    game_log_map = {}   # player_name -> DataFrame | None
+    error_map = {}      # player_name -> exception
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = {pool.submit(_fetch_logs, item): item[0] for item in resolved.items()}
+        for future in as_completed(futures):
+            pname, logs, exc = future.result()
+            if exc is not None:
+                error_map[pname] = exc
+            else:
+                game_log_map[pname] = logs
+
+    # Generate predictions (pure computation, no more NBA API calls)
     print("\nAnalyzing confidence...")
     all_predictions = []
     analyzed_count = 0
-    error_count = 0
-    skipped_count = 0
-    
-    total_players = len(simple_props)
-    
-    for idx, (player_name, prop_lines) in enumerate(simple_props.items(), 1):
+    error_count = len(error_map)
+    skipped_count = len(skipped_no_id)
+
+    for player_name, (player_id, prop_lines) in resolved.items():
+        if player_name in error_map:
+            print(f"Error analyzing {player_name}: {error_map[player_name]}")
+            continue
+
+        game_logs = game_log_map.get(player_name)
+        if game_logs is None or len(game_logs) < 5:
+            skipped_count += 1
+            if skipped_count <= 5:
+                n = len(game_logs) if game_logs is not None else 0
+                print(f"skipping {player_name} (insufficient games: {n})")
+            continue
+
         try:
-            player_id = player_id_map.get(player_name)
-            
-            if not player_id:
-                player_id = fetch_player_id_from_nba_api(player_name)
-                if player_id:
-                    player_id_map[player_name] = player_id
-            
-            # skip if cant find player id
-            if not player_id:
-                if skipped_count < 5:
-                    print(f"[{idx}/{total_players}] skipping {player_name} (cannot find player id)")
-                skipped_count += 1
-                continue
-            
-            # fetch game logs
-            game_logs = fetcher.get_player_stats(player_id, num_games=15)
-            
-            if len(game_logs) < 5:
-                if skipped_count < 5:
-                    print(f"[{idx}/{total_players}] skipping {player_name} (insufficient games: {len(game_logs)})")
-                skipped_count += 1
-                continue
-            
-            # generate predictions
             predictions = analyzer.analyze_player(
                 game_logs=game_logs,
                 player_name=player_name,
                 prop_lines=prop_lines
             )
-            
+
             if player_name in raw_odds:
                 event_info = raw_odds[player_name]
                 for pred in predictions:
@@ -222,25 +251,20 @@ def generate_all_picks(force_refresh: bool = False):
                     pred['home_team'] = event_info.get('home_team', 'N/A')
                     pred['away_team'] = event_info.get('away_team', 'N/A')
                     pred['commence_time'] = event_info.get('commence_time', 'N/A')
-            
+
             all_predictions.extend(predictions)
             analyzed_count += 1
-            
-            # rate limiting
-            time.sleep(0.3)
-            
+
         except Exception as e:
             error_count += 1
-            if error_count <= 3:
-                print(f"Error analyzing {player_name}: {str(e)}")
-            continue
+            print(f"Error generating predictions for {player_name}: {e}")
     
     elapsed = time.time() - start_time
-    
     print(f"Successfully analyzed: {analyzed_count} players")
     print(f"Skipped: {skipped_count} players")
     print(f"Errors: {error_count}")
     print(f"Total predictions generated: {len(all_predictions)}")
+    print(f"Time taken: {elapsed:.1f}s")
     
     # Cache the results
     picks_cache['data'] = all_predictions
@@ -426,8 +450,18 @@ def get_players():
         from nba_api.stats.endpoints import playerindex
 
         print("Fetching player index from NBA API...")
-        idx = playerindex.PlayerIndex(season='2025-26', league_id='00')
-        df = idx.get_data_frames()[0]
+        df = None
+        for attempt in range(3):
+            try:
+                idx = playerindex.PlayerIndex(season='2025-26', league_id='00', timeout=30)
+                df = idx.get_data_frames()[0]
+                break
+            except Exception as e:
+                print(f"PlayerIndex attempt {attempt + 1} failed: {e}")
+                if attempt < 2:
+                    time.sleep(2)
+        if df is None:
+            return jsonify({'success': False, 'error': 'API unavailable, try again'}), 503
 
         # Keep only active roster players
         df = df[df['ROSTER_STATUS'] == 1].copy()

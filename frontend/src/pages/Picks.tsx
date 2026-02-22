@@ -294,12 +294,18 @@ const Picks = () => {
       <div className="picks-page">
         <div className="picks-top-header">
           <h1>Top Picks For Today</h1>
-          <p className="picks-top-subtitle">
-            {topPicks.count} picks · {topPicks.total_analyzed} players analyzed
-            {topPicks.cache_age_seconds != null && (
-              <span className="picks-cache-age"> · cached {Math.round(topPicks.cache_age_seconds / 60)}m ago</span>
-            )}
-          </p>
+          <div className="picks-top-subtitle">
+            {topPicks.count} picks · {topPicks.total_analyzed} predictions analyzed
+            <button className="picks-refresh-button" onClick={() => {
+            fetch('http://localhost:5001/api/picks/refresh')
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.success) {
+                  setTopPicks(d);
+                }
+              });
+          }}>Refresh Picks</button>
+          </div>
         </div>
 
         <div className="picks-stats">

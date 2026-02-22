@@ -30,11 +30,12 @@ class NBAFetcher:
         self.resolved_game_date = None
         return pd.DataFrame()
 
-    def get_player_stats(self, player_id, num_games=15):
+    def get_player_stats(self, player_id, num_games=15, timeout=10):
         log = playergamelog.PlayerGameLog(
             player_id=player_id,
             season='2025-26',
-            season_type_all_star='Regular Season'
+            season_type_all_star='Regular Season',
+            timeout=timeout
         )
         
         df = log.get_data_frames()[0]
