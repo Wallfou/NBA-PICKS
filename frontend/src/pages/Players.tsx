@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import * as NBA_LOGOS from "../components/nbaLogos";
 import "./Players.css";
 
@@ -27,6 +28,7 @@ interface Player {
 const fmt = (v: number) => (v != null && !isNaN(v) ? v.toFixed(1) : "—");
 
 const Players = () => {
+  const navigate = useNavigate();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,7 +142,11 @@ const Players = () => {
           </thead>
           <tbody>
             {filtered.map((player) => (
-              <tr key={player.id} className="player-row">
+              <tr
+                key={player.id}
+                className="player-row"
+                onClick={() => navigate(`/picks/${encodeURIComponent(player.name)}`)}
+              >
                 <td className="col-photo">
                   <img
                     className="player-headshot"

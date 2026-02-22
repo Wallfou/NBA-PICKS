@@ -1,0 +1,393 @@
+.picks-page {
+  max-width: 60vw;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+  min-height: 80vh;
+}
+
+/* Back button */
+.picks-back {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #888;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.picks-back:hover {
+  border-color: #338f4a;
+  color: #338f4a;
+}
+
+/* Player header */
+.picks-header {
+  margin-bottom: 2.5rem;
+}
+
+.picks-player-identity {
+  display: flex;
+  align-items: flex-end;
+
+}
+
+.picks-headshot {
+  width: 100px;
+  height: 66px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.picks-player-info h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #239e42, #338f4a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.picks-game-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.picks-matchup {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.picks-matchup-teams {
+  font-size: 0.95rem;
+  color: #aaa;
+  font-weight: 500;
+}
+
+.picks-game-time {
+  font-size: 0.8rem;
+  color: #555;
+}
+
+/* Top picks page header */
+.picks-top-header {
+  margin-bottom: 2rem;
+}
+
+.picks-top-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #239e42, #338f4a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.35rem;
+}
+
+.picks-top-subtitle {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.picks-cache-age {
+  color: #444;
+}
+
+/* Clickable card */
+.picks-stat-card--clickable {
+  cursor: pointer;
+}
+
+/* Player row inside top-picks card */
+.picks-top-player-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+}
+
+.picks-top-headshot {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 50px;
+  border: 2px solid rgba(66, 126, 46, 0.586);
+  flex-shrink: 0;
+}
+
+.picks-top-player-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.picks-top-player-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.picks-top-game {
+  font-size: 0.9rem;
+  color: #bababa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picks-top-rank {
+  font-size: 2rem;
+  font-weight: 800;
+  color: rgba(51, 143, 74, 0.81);
+  flex-shrink: 0;
+}
+
+/* Stat cards */
+.picks-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.picks-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1.5rem 1.5rem 1.25rem;
+  transition: border-color 0.2s ease;
+}
+
+.picks-stat-card:hover {
+  border-color: #338f4a;
+}
+
+/* Card header row */
+.picks-stat-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.picks-stat-type {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  min-width: 90px;
+}
+
+.picks-stat-line-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.picks-line {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ccc;
+}
+
+.picks-pick {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+}
+
+.picks-pick-over {
+  background: rgba(51, 143, 74, 0.2);
+  color: #4cbe6c;
+  border: 1px solid rgba(51, 143, 74, 0.4);
+}
+
+.picks-pick-under {
+  background: rgba(200, 60, 60, 0.2);
+  color: #e06060;
+  border: 1px solid rgba(200, 60, 60, 0.4);
+}
+
+/* Confidence */
+.picks-confidence-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.picks-confidence-label {
+  font-size: 0.75rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.picks-confidence-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  min-width: 38px;
+  text-align: right;
+}
+
+.picks-confidence-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.picks-confidence-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #239e42, #338f4a);
+  transition: width 0.4s ease;
+}
+
+/* Chart */
+.picks-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+/* Secondary stats row */
+.picks-secondary {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.picks-sec-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.picks-sec-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.picks-sec-label {
+  font-size: 0.68rem;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* Trend badge */
+.trend-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  margin-left: auto;
+}
+
+.trend-up {
+  color: #4cbe6c;
+  background: rgba(51, 143, 74, 0.15);
+}
+
+.trend-down {
+  color: #e06060;
+  background: rgba(200, 60, 60, 0.15);
+}
+
+.trend-neutral {
+  color: #777;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Loading / Error */
+.picks-loading,
+.picks-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 50vh;
+  font-size: 1rem;
+  color: #999;
+  text-align: center;
+  padding: 2rem;
+}
+
+.picks-error {
+  color: #e55;
+}
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  .picks-stat-card {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .picks-top-player-row {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .picks-top-player-name {
+    color: #213547;
+  }
+
+  .picks-player-info h1 {
+    -webkit-text-fill-color: transparent;
+  }
+
+  .picks-stat-type,
+  .picks-line,
+  .picks-sec-val,
+  .picks-confidence-value {
+    color: #213547;
+  }
+
+  .picks-secondary {
+    border-top-color: rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .picks-page {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  .picks-player-identity {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .picks-stat-header {
+    gap: 0.75rem;
+  }
+
+  .picks-confidence-group {
+    width: 100%;
+  }
+}

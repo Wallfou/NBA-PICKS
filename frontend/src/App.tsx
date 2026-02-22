@@ -79,6 +79,20 @@ const AnimatedRoutes = () => {
             </motion.div>
           }
         />
+        <Route
+          path="/picks/:playerName"
+          element={
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <Picks />
+            </motion.div>
+          }
+        />
       </Routes>
     </AnimatePresence>
   );

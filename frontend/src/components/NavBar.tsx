@@ -44,22 +44,22 @@ const NavBar = () => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/games" className={`nav-link ${isActive('/games') ? 'active' : ''}`}>
-              <motion.span
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Games
-              </motion.span>
-            </Link>
-          </li>
-          <li className="nav-item">
             <Link to="/players" className={`nav-link ${isActive('/players') ? 'active' : ''}`}>
               <motion.span
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 Players
+              </motion.span>
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/games" className={`nav-link ${isActive('/games') ? 'active' : ''}`}>
+              <motion.span
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Games
               </motion.span>
             </Link>
           </li>

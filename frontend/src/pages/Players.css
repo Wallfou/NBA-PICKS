@@ -129,6 +129,7 @@
 .player-row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.129);
   transition: background 0.15s ease;
+  cursor: pointer;
 }
 
 .player-row:hover {

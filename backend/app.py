@@ -56,12 +56,12 @@ except Exception as e:
 
 print("All services initialized successfully!\n")
 
-# cache for 3 hours
+# cache for 6 hours — Odds API tokens are limited
 picks_cache = {
     'data': None,
     'raw_odds': None,
     'timestamp': None,
-    'ttl': 10800
+    'ttl': 21600
 }
 
 # cache for 40 minutes
