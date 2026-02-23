@@ -68,3 +68,41 @@ This gently pulls estimates toward 50% without overpowering real data. The effec
 - 1/2 (50%) → pulled closer to 50% baseline
 - 0 games → defaults to 50% instead of 0%
 
+---
+
+### 6. Replacing Linear Score Blending with True Probability Modeling
+
+**Problem:** Confidence was computed as a weighted blend of multiple unrelated score functions (hit rate, cushion, consistency, trend). While intuitive, this linear combination lacks statistical grounding and makes interpretation difficult.
+
+**Root cause:** Blending heuristic scores does not directly model the actual probability of a player clearing the betting line. It mixes scales and assumptions without a probabilistic foundation.
+
+**Fix:** Shift to a distribution-based probability model:
+
+1. Estimate the mean (μ) and standard deviation (σ) of the recent stat distribution.
+2. Convert that distribution into the probability of clearing the betting line.
+3. Use trend and consistency as small adjustments, not primary drivers.
+
+Baseline probability model:
+
+```
+P(OVER) = 1 - Φ((line - μ) / σ)
+P(UNDER) = Φ((line - μ) / σ)
+```
+
+Where:
+- μ = sample mean  
+- σ = sample standard deviation  
+- Φ = standard normal CDF  
+
+This can be implemented using `scipy.stats.norm.cdf`. If avoiding SciPy, it can be approximated with `math.erf`
+
+**Why this is better:**
+
+- Naturally accounts for both distance from the line *and* volatility.
+- Produces smoother behavior than “7 out of last 10”.
+- Outputs a real, interpretable probability.
+- Cleanly separates statistical signal (distribution) from heuristics (trend adjustments).
+
+Once probability is computed, it can be mapped directly to a confidence score.
+
+---

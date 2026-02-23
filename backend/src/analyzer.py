@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Tuple
+import math
+from typing import Dict, List
 from datetime import datetime
 
 class NBAAnalyzer:
@@ -14,48 +15,55 @@ class NBAAnalyzer:
         'MIN': 'MIN'
     }
 
-    WEIGHTS = {
-        'hit_rate': 0.65,
-        'trend': 0.10,
-        'consistency': 0.1,
-        'cushion': 0.15
-    }
-
     def __init__(self, num_games=10):
         self.num_games = num_games
-    
+
+    def _normal_cdf(self, x: float) -> float:
+        return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
+
     def calculate_confidence(self, game_logs: pd.DataFrame, prop_line: float, stat_type: str) -> Dict:
         stat_col = self.STAT_COLS[stat_type]
         recent_stats = game_logs[stat_col].head(self.num_games).values
 
-        if (len(recent_stats) == 0):
+        if len(recent_stats) == 0:
             return self._empty_confidence()
 
-        average = np.mean(recent_stats)
-        pick_direction = 'OVER' if average > prop_line else 'UNDER'
-        
-        # Calculate hit rate based on pick direction
-        hit_rate = self._calculate_hit_rate(recent_stats, prop_line, pick_direction)
+        mu = np.mean(recent_stats)
+        sigma = np.std(recent_stats)
+        pick_direction = 'OVER' if mu > prop_line else 'UNDER'
+
+        # Base probability from normal distribution
+        # P(OVER) = 1 - Φ((line - μ) / σ)
+        # P(UNDER) = Φ((line - μ) / σ)
+        if sigma < 1e-6:
+            base_prob = 1.0 if (
+                (pick_direction == 'OVER' and mu > prop_line) or
+                (pick_direction == 'UNDER' and mu < prop_line)
+            ) else 0.0
+        else:
+            z = (prop_line - mu) / sigma
+            base_prob = (1.0 - self._normal_cdf(z)) if pick_direction == 'OVER' else self._normal_cdf(z)
+
         trend_score = self._calculate_trend(recent_stats)
         consistency_score = self._calculate_consistency(recent_stats)
-        cushion_score = self._calculate_cushion(recent_stats, prop_line, pick_direction)
 
-        confidence = (
-            hit_rate * self.WEIGHTS['hit_rate'] +
-            trend_score * self.WEIGHTS['trend'] +
-            consistency_score * self.WEIGHTS['consistency'] +
-            cushion_score * self.WEIGHTS['cushion']
-        )
+        trend_adj = (trend_score - 0.85) * 0.27
+        consistency_adj = (consistency_score - 0.5) * 0.08
 
-        std_dev = np.std(recent_stats)
+        confidence = float(np.clip(base_prob + trend_adj + consistency_adj, 0.0, 1.0))
+
+        # Raw hit rate for display only, this is unsmoothed
+        n = len(recent_stats)
+        raw_hits = int(np.sum(recent_stats > prop_line) if pick_direction == 'OVER' else np.sum(recent_stats < prop_line))
+        hit_rate = raw_hits / n if n > 0 else 0.0
         last_5_avg = np.mean(recent_stats[:5])
 
         return {
             'confidence': round(confidence * 100, 1),
             'hit_rate': round(hit_rate * 100, 1),
-            'average': round(average, 1),
+            'average': round(mu, 1),
             'last_5_avg': round(last_5_avg, 1),
-            'std_dev': round(std_dev, 2),
+            'std_dev': round(sigma, 2),
             'trend': self._get_trend_direction(recent_stats),
             'pick': pick_direction,
             'recent_games': recent_stats.tolist()[:10]
@@ -109,18 +117,6 @@ class NBAAnalyzer:
 
         consistency = max(0, min(1, 1 - (cov - 0.2) / 0.3))
         return consistency
-
-    def _calculate_cushion(self, stats, line, pick_direction):
-        avg = np.mean(stats)
-        if line <= 0:
-            return 0.5
-
-        signed = (avg - line) if pick_direction == 'OVER' else (line - avg)
-        dist = signed / line
-
-        if dist <= 0:
-            return max(0.0, 0.5 + dist * 5)
-        return min(1.0, 0.5 + dist * 5)
 
     def _empty_confidence(self) -> Dict:
         return {
