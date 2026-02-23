@@ -38,7 +38,7 @@ class NBAAnalyzer:
         hit_rate = self._calculate_hit_rate(recent_stats, prop_line, pick_direction)
         trend_score = self._calculate_trend(recent_stats)
         consistency_score = self._calculate_consistency(recent_stats)
-        cushion_score = self._calculate_cushion(recent_stats, prop_line)
+        cushion_score = self._calculate_cushion(recent_stats, prop_line, pick_direction)
 
         confidence = (
             hit_rate * self.WEIGHTS['hit_rate'] +
@@ -61,21 +61,17 @@ class NBAAnalyzer:
             'recent_games': recent_stats.tolist()[:10]
         }
 
-    def _calculate_hit_rate(self, stats: np.ndarray, line: float, pick_direction: str) -> float:
-        if len(stats) == 0:
-            return 0
-        
-        if pick_direction == 'OVER':
-            hits = np.sum(stats > line)
-        else:
-            hits = np.sum(stats < line)
-        
-        return hits / len(stats)
+    def _calculate_hit_rate(self, stats, line, pick_direction, alpha=2.0, beta=2.0):
+        n = len(stats)
+        if n == 0:
+            return 0.5
+        hits = np.sum(stats > line) if pick_direction == 'OVER' else np.sum(stats < line)
+        return (hits + alpha) / (n + alpha + beta)
 
     def _calculate_trend(self, stats: np.ndarray) -> str:
         if len(stats) < 6:
             return 0.85
-        last_5_avg = np.mean(stats[-5:])
+        last_5_avg = np.mean(stats[:5])
         prev_5_avg = np.mean(stats[5:10])
 
         if prev_5_avg == 0:
@@ -93,7 +89,7 @@ class NBAAnalyzer:
         if len(stats) < 6:
             return 'neutral'
         
-        last_5_avg = np.mean(stats[-5:])
+        last_5_avg = np.mean(stats[:5])
         prev_5_avg = np.mean(stats[5:10])
 
         if last_5_avg > prev_5_avg * 1.05:
@@ -114,18 +110,18 @@ class NBAAnalyzer:
         consistency = max(0, min(1, 1 - (cov - 0.2) / 0.3))
         return consistency
 
-    def _calculate_cushion(self, stats: np.ndarray, line: float) -> float:
-        average = np.mean(stats)
-        if line == 0:
+    def _calculate_cushion(self, stats, line, pick_direction):
+        avg = np.mean(stats)
+        if line <= 0:
             return 0.5
-        
-        dist = (average - line) / line
 
-        if dist >= 0:
-            return min(1.0, 0.5 + (dist * 5))
-        else:
-            return min(1.0, 0.5 + (abs(dist) * 5))
-        
+        signed = (avg - line) if pick_direction == 'OVER' else (line - avg)
+        dist = signed / line
+
+        if dist <= 0:
+            return max(0.0, 0.5 + dist * 5)
+        return min(1.0, 0.5 + dist * 5)
+
     def _empty_confidence(self) -> Dict:
         return {
             'confidence': 0,

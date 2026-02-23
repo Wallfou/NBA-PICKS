@@ -114,8 +114,13 @@
   font-weight: 800;
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+.picks-refresh-button:hover {
+  background: #338f4a;
+}
+
 
 /* Clickable card */
 .picks-stat-card--clickable {
