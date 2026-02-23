@@ -2,6 +2,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Github, Mail, Linkedin } from 'lucide-react';
 import { useRef } from 'react';
 import step1Img from '../assets/Step1.png';
+import step2Img from '../assets/Step2.png';
+import step4Img from '../assets/Step4.png';
 import './Home.css';
 
 const playerNameRows = [
@@ -108,8 +110,13 @@ const Home = () => {
               <div className="step-text">
                 <h3>Fetch Real-time Data</h3>
                 <p>
-                  We pull the latest NBA player statistics and game logs using the official NBA API,
-                  ensuring you have access to the most current player performance data.
+                  We pull each player's last 10–15 game logs directly from the NBA Stats API,
+                  capturing points, rebounds, assists, steals, blocks, and three-pointers made.
+                  Every stat is timestamped and sorted by recency so the model always reasons
+                  from the most current form — not season-long averages that obscure recent
+                  slumps or hot streaks. Player rosters and season averages are cached for 24 hours,
+                  while game schedules refresh every 10 minutes, keeping the data fresh without
+                  hammering the API.
                 </p>
               </div>
               <div className="step-image">
@@ -121,12 +128,16 @@ const Home = () => {
               <div className="step-text">
                 <h3>Get Live Odds</h3>
                 <p>
-                  Integration with premium odds APIs provides real-time betting lines from multiple
-                  bookmakers, giving you the best available lines for each prop.
+                  Prop lines are sourced in real time from The Odds API, aggregating lines across
+                  multiple major sportsbooks for every player with a listed prop on today's slate.
+                  We collect over/under lines for points, rebounds, and assists — the three stats
+                  with the deepest market coverage and most reliable historical data. To protect
+                  your limited API quota, odds are cached for 6 hours and only refreshed on demand,
+                  so you never burn tokens on redundant calls mid-day.
                 </p>
               </div>
               <div className="step-image">
-                <img src="https://placehold.co/400x260/1a1a1a/338f4a?text=IMAGE" alt="Get live odds" />
+                <img src={step2Img} alt="Get live odds" />
               </div>
             </div>
 
@@ -134,8 +145,13 @@ const Home = () => {
               <div className="step-text">
                 <h3>Analyze Patterns</h3>
                 <p>
-                  Our analyzer calculates confidence scores using hit rate, trend analysis, consistency
-                  metrics, and cushion scoring to evaluate each player prop.
+                  For each player-prop pair, we model their recent stat distribution as a normal
+                  distribution and compute the true probability of clearing the betting line using
+                  the standard normal CDF — not a simple hit-rate count. This means a player who
+                  averages 28 points with low variance gets a meaningfully different confidence score
+                  than one who averages 28 with wild swings. Trend and consistency scores apply
+                  small secondary adjustments, fine-tuning the signal without overriding the
+                  statistical foundation.
                 </p>
               </div>
               <div className="step-image">
@@ -147,12 +163,16 @@ const Home = () => {
               <div className="step-text">
                 <h3>Get Predictions</h3>
                 <p>
-                  Receive ranked predictions with detailed breakdowns including confidence levels,
-                  recent performance trends, and OVER/UNDER recommendations.
+                  Every pick is ranked by confidence and surfaced with a full breakdown: the
+                  recommended OVER or UNDER, the prop line, hit rate over the last 10 games,
+                  season average, last-5-game average, standard deviation, and a bar chart of
+                  individual game results plotted against the line. The top picks page highlights
+                  the highest-confidence plays across the entire day's slate, so you can act
+                  quickly on the best opportunities without digging through every player yourself.
                 </p>
               </div>
               <div className="step-image">
-                <img src="https://placehold.co/400x260/1a1a1a/338f4a?text=IMAGE" alt="Get predictions" />
+                <img src={step4Img} alt="Get predictions" />
               </div>
             </div>
           </motion.div>

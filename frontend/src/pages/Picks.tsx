@@ -247,7 +247,7 @@ const Picks = () => {
   // Fetch top 5 picks when on /picks (no player param)
   useEffect(() => {
     if (decoded) return;
-    fetch('http://localhost:5001/api/picks/top?limit=5&min_confidence=65')
+    fetch('http://localhost:5001/api/picks/top?limit=10&min_confidence=65')
       .then((r) => r.json())
       .then((d) => {
         if (d.success) setTopPicks(d);
