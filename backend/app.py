@@ -9,9 +9,10 @@ from src.fetcher import NBAFetcher
 from src.analyzer import NBAAnalyzer
 from src.odds_fetcher import get_odds_fetcher, convert_to_simple_format
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import os
+import pandas as pd
 
 app = Flask(__name__)
 CORS(app)
@@ -150,6 +151,17 @@ def fetch_player_id_from_nba_api(player_name: str):
         return None
 
 
+def _days_since_last_game(game_logs) -> int | None:
+    """
+    Return the number of calendar days since the player's most recent logged game.
+    """
+    try:
+        last_date = pd.to_datetime(game_logs['GAME_DATE'].iloc[0])
+        return (datetime.now() - last_date).days
+    except Exception:
+        return None
+
+
 def generate_all_picks(force_refresh: bool = False):
     """
     Generate picks for all players with odds today
@@ -237,6 +249,14 @@ def generate_all_picks(force_refresh: bool = False):
             if skipped_count <= 5:
                 n = len(game_logs) if game_logs is not None else 0
                 print(f"skipping {player_name} (insufficient games: {n})")
+            continue
+
+        # Skip players who haven't played recently — they are likely injured or inactive.
+        # PlayerGameLog only returns games played, so "last 10 games" could be weeks old.
+        days_out = _days_since_last_game(game_logs)
+        if days_out is not None and days_out > 7:
+            skipped_count += 1
+            print(f"skipping {player_name} (last played {days_out} days ago — likely inactive)")
             continue
 
         try:
@@ -436,7 +456,10 @@ def get_today_games():
 
 
 def _filter_players_today(players: list) -> list:
-    """Return only players who have prop lines available for today."""
+    """Return only players who have prop lines available for today.
+    Each player gets a 'has_picks' flag indicating whether predictions
+    were successfully generated (False means likely injured/inactive).
+    """
     raw_odds = picks_cache.get('raw_odds')
     if not raw_odds:
         try:
@@ -448,7 +471,14 @@ def _filter_players_today(players: list) -> list:
         return players
 
     today_names = {name.lower() for name in raw_odds}
-    return [p for p in players if p['name'].lower() in today_names]
+    filtered = [p for p in players if p['name'].lower() in today_names]
+
+    picks_data = picks_cache.get('data')
+    if picks_data:
+        players_with_picks = {p['player_name'].lower() for p in picks_data}
+        return [{**p, 'has_picks': p['name'].lower() in players_with_picks} for p in filtered]
+
+    return [{**p, 'has_picks': True} for p in filtered]
 
 
 @app.route('/api/allPlayers')

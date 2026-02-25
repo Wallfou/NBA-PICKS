@@ -23,6 +23,7 @@ interface Player {
   pts: number;
   reb: number;
   ast: number;
+  has_picks: boolean;
 }
 
 const fmt = (v: number) => (v != null && !isNaN(v) ? v.toFixed(1) : "—");
@@ -144,19 +145,24 @@ const Players = () => {
             {filtered.map((player) => (
               <tr
                 key={player.id}
-                className="player-row"
+                className={`player-row${player.has_picks === false ? " player-row--inactive" : ""}`}
                 onClick={() => navigate(`/picks/${encodeURIComponent(player.name)}`)}
               >
                 <td className="col-photo">
-                  <img
-                    className="player-headshot"
-                    src={HEADSHOT_URL(player.id)}
-                    alt={player.name}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.visibility =
-                        "hidden";
-                    }}
-                  />
+                  <div className="player-headshot-wrap">
+                    <img
+                      className="player-headshot"
+                      src={HEADSHOT_URL(player.id)}
+                      alt={player.name}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.visibility =
+                          "hidden";
+                      }}
+                    />
+                    {player.has_picks === false && (
+                      <span className="player-injured-badge">OUT</span>
+                    )}
+                  </div>
                 </td>
                 <td className="col-name">
                   <span className="player-name">{player.name}</span>

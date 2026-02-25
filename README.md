@@ -106,3 +106,15 @@ This can be implemented using `scipy.stats.norm.cdf`. If avoiding SciPy, it can 
 Once probability is computed, it can be mapped directly to a confidence score.
 
 ---
+
+### 6. PlayerGameLog only returns games the player played in
+
+**Problem:** PlayerGameLog only returns games the player played in — it completely ignores missed games. So "last 10 games" actually means "last 10 games he suited up for", which might have been 3 weeks ago.
+
+**Root cause:** PlayerGameLog is a played-games-only log. It has no concept of DNPs or absences. Asking for "last 15 games" gives you the 15 most recent games Embiid suited up for — which could span the last 2 months if he's been hurt
+
+**Fix:** Fix: After fetching the logs, _days_since_last_game reads the GAME_DATE of the most recent row. If it's more than 7 days ago, the player is skipped with a clear message like skipping Joel Embiid (last played 12 days ago — likely inactive).
+
+**Why 7 days?** The NBA schedule typically has at most a 3–4 day gap between games for any team. A 7-day gap reliably indicates an injury, suspension, or load management situation — not just a scheduling hole.
+
+--- 
