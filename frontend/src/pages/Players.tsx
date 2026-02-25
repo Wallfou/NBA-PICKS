@@ -28,6 +28,8 @@ interface Player {
 
 const fmt = (v: number) => (v != null && !isNaN(v) ? v.toFixed(1) : "—");
 
+const POSITION_ORDER = ["PG", "SG", "SF", "PF", "C"];
+
 const Players = () => {
   const navigate = useNavigate();
   const [players, setPlayers] = useState<Player[]>([]);
@@ -35,6 +37,10 @@ const Players = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+  const [selectedTeams, setSelectedTeams] = useState<Set<string>>(new Set());
+  const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set());
+  const [minPts, setMinPts] = useState<string>("");
+  const [maxPts, setMaxPts] = useState<string>("");
 
   useEffect(() => {
     setLoading(true);
@@ -59,16 +65,70 @@ const Players = () => {
     fetchPlayers();
   }, [retryKey]);
 
+  const allTeams = useMemo(
+    () => [...new Set(players.map((p) => p.team).filter(Boolean))].sort(),
+    [players],
+  );
+
+  const allPositions = useMemo(() => {
+    const raw = [...new Set(players.map((p) => p.position).filter(Boolean))];
+    return raw.sort(
+      (a, b) => (POSITION_ORDER.indexOf(a) ?? 99) - (POSITION_ORDER.indexOf(b) ?? 99),
+    );
+  }, [players]);
+
+  const toggleTeam = (team: string) =>
+    setSelectedTeams((prev) => {
+      const next = new Set(prev);
+      if (next.has(team)) { 
+        next.delete(team); 
+      } 
+      else { 
+        next.add(team); 
+      }
+      return next;
+    });
+
+  const togglePosition = (pos: string) =>
+    setSelectedPositions((prev) => {
+      const next = new Set(prev);
+      if (next.has(pos)) { 
+        next.delete(pos); 
+      } 
+      else { 
+        next.add(pos); 
+      }
+      return next;
+    });
+  
+  const clearFilters = () => {
+    setSelectedTeams(new Set());
+    setSelectedPositions(new Set());
+    setMinPts("");
+    setMaxPts("");
+    setSearch("");
+  };
+
+  const minPtsNum = minPts.trim() !== "" ? parseFloat(minPts) : null;
+  const maxPtsNum = maxPts.trim() !== "" ? parseFloat(maxPts) : null;
+
+  const hasActiveFilters =
+    selectedTeams.size > 0 || selectedPositions.size > 0 ||
+    minPtsNum !== null || maxPtsNum !== null|| search.trim() !== "";
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return players;
-    return players.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.team.toLowerCase().includes(q) ||
-        p.position.toLowerCase().includes(q),
-    );
-  }, [players, search]);
+    const min = minPts.trim() !== "" ? parseFloat(minPts) : null;
+    const max = maxPts.trim() !== "" ? parseFloat(maxPts) : null;
+    return players.filter((p) => {
+      if (q && !p.name.toLowerCase().includes(q) && !p.team.toLowerCase().includes(q) && !p.position.toLowerCase().includes(q)) return false;
+      if (selectedTeams.size > 0 && !selectedTeams.has(p.team)) return false;
+      if (selectedPositions.size > 0 && !selectedPositions.has(p.position)) return false;
+      if (min !== null && p.pts < min) return false;
+      if (max !== null && p.pts > max) return false;
+      return true;
+    });
+  }, [players, search, selectedTeams, selectedPositions, minPts, maxPts]);
 
   if (loading) {
     return (
@@ -98,35 +158,94 @@ const Players = () => {
     <div className="players-page">
       <div className="players-header">
         <h1>Players</h1>
-        <p className="players-subtitle">
-          Players with picks available today
-        </p>
-
-        <div className="players-search-wrap">
-          <input
-            className="players-search"
-            type="text"
-            placeholder="Search by name, team, or position…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button
-              className="players-search-clear"
-              onClick={() => setSearch("")}
-            >
-              ✕
-            </button>
-          )}
-        </div>
-
-        <p className="players-count">
-          {filtered.length} player{filtered.length !== 1 ? "s" : ""}
-          {search ? ` matching "${search}"` : ""}
-        </p>
+        <p className="players-subtitle">Players with picks available today</p>
       </div>
 
-      <div className="players-table-wrap">
+      <div className="players-body">
+        {/* ── Sidebar ── */}
+        <aside className="players-sidebar">
+          <div className="sidebar-search-wrap">
+            <input
+              className="players-search"
+              type="text"
+              placeholder="Search players…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button className="players-search-clear" onClick={() => setSearch("")}>✕</button>
+            )}
+          </div>
+
+          <div className="filter-group">
+            <div className="filter-group-title">Position</div>
+            <div className="filter-chips-grid">
+              {allPositions.map((pos) => (
+                <label key={pos} className="filter-chip-label">
+                  <input
+                    type="checkbox"
+                    checked={selectedPositions.has(pos)}
+                    onChange={() => togglePosition(pos)}
+                  />
+                  <span className={`filter-chip${selectedPositions.has(pos) ? " filter-chip--active" : ""}`}>
+                    {pos}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <div className="filter-group-title">Team</div>
+            <div className="filter-chips-grid">
+              {allTeams.map((team) => (
+                <label key={team} className="filter-chip-label">
+                  <input
+                    type="checkbox"
+                    checked={selectedTeams.has(team)}
+                    onChange={() => toggleTeam(team)}
+                  />
+                  <span className={`filter-chip${selectedTeams.has(team) ? " filter-chip--active" : ""}`}>
+                    {team}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+
+          <div className="filter-group">
+            <div className="filter-group-title">Min PTS</div>
+            <input
+              className="filter-number-input"
+              type="number"
+              min="0"
+              placeholder="e.g. 5"
+              value={minPts}
+              onChange={(e) => setMinPts(e.target.value)}
+            />
+          </div>
+
+          <div className="filter-group">
+            <div className="filter-group-title">Max PTS</div>
+            <input
+              className="filter-number-input"
+              type="number"
+              min="0"
+              placeholder="e.g. 20"
+              value={maxPts}
+              onChange={(e) => setMaxPts(e.target.value)}
+            />
+          </div>
+
+          {hasActiveFilters && (
+            <button className="filter-clear-btn" onClick={clearFilters}>
+              Clear all filters
+            </button>
+          )}
+        </aside>
+
+        <div className="players-table-wrap">
         <table className="players-table">
           <thead>
             <tr>
@@ -181,9 +300,12 @@ const Players = () => {
           </tbody>
         </table>
 
-        {filtered.length === 0 && search && (
-          <div className="players-empty">No players found for "{search}"</div>
-        )}
+          {filtered.length === 0 && (
+            <div className="players-empty">
+              No players match the current filters.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
