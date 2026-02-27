@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: NBA Picks API — Flask backend on AWS Lambda + API Gateway
+
+Globals:
+  Function:
+    Timeout: 120          # picks generation can take up to ~30s on cold cache
+    MemorySize: 512
+    Runtime: python3.11
+    Environment:
+      Variables:
+        USE_REAL_ODDS: "true"
+        # Add your Odds API key here or pull from SSM / Secrets Manager:
+        # ODDS_API_KEY: !Sub "{{resolve:ssm:/nba-picks/odds-api-key}}"
+
+Resources:
+  NbaPicksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: nba-picks-api
+      CodeUri: .
+      Handler: lambda_handler.handler
+      Description: NBA player prop picks API
+      Events:
+        # Catch-all route — API Gateway forwards every path/method to Flask
+        ApiRoot:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint — use this as VITE_API_URL in Amplify"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"

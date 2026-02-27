@@ -3,6 +3,7 @@ import { Github, Mail, Linkedin } from 'lucide-react';
 import { useRef } from 'react';
 import step1Img from '../assets/Step1.png';
 import step2Img from '../assets/Step2.png';
+import step3Img from '../assets/Step3.png';
 import step4Img from '../assets/Step4.png';
 import './Home.css';
 
@@ -155,7 +156,7 @@ const Home = () => {
                 </p>
               </div>
               <div className="step-image">
-                <img src="https://placehold.co/400x260/1a1a1a/338f4a?text=IMAGE" alt="Analyze patterns" />
+                <img src={step3Img} alt="Analyze patterns" />
               </div>
             </div>
 

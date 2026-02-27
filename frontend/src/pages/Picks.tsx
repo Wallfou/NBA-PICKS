@@ -227,7 +227,7 @@ const Picks = () => {
 
   // Fetch player IDs for headshots (shared, from already-cached /api/players)
   useEffect(() => {
-    fetch('http://localhost:5001/api/allPlayers')
+    fetch(`${import.meta.env.VITE_API_URL}/api/allPlayers`)
       .then((r) => r.json())
       .then((d) => {
         if (!d.success) return;
@@ -247,7 +247,7 @@ const Picks = () => {
   // Fetch top 5 picks when on /picks (no player param)
   useEffect(() => {
     if (decoded) return;
-    fetch('http://localhost:5001/api/picks/top?limit=10&min_confidence=65')
+    fetch(`${import.meta.env.VITE_API_URL}/api/picks/top?limit=10&min_confidence=65`)
       .then((r) => r.json())
       .then((d) => {
         if (d.success) setTopPicks(d);
@@ -261,7 +261,7 @@ const Picks = () => {
   useEffect(() => {
     if (!decoded) return;
 
-    fetch(`http://localhost:5001/api/picks/player/${encodeURIComponent(decoded)}`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/picks/player/${encodeURIComponent(decoded)}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
@@ -297,7 +297,7 @@ const Picks = () => {
           <div className="picks-top-subtitle">
             {topPicks.count} picks · {topPicks.total_analyzed} predictions analyzed
             <button className="picks-refresh-button" onClick={() => {
-            fetch('http://localhost:5001/api/picks/refresh')
+            fetch(`${import.meta.env.VITE_API_URL}/api/picks/refresh`)
               .then((r) => r.json())
               .then((d) => {
                 if (d.success) {

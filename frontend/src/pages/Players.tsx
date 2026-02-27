@@ -47,7 +47,7 @@ const Players = () => {
     setError(null);
     const fetchPlayers = async () => {
       try {
-        const res = await fetch("http://localhost:5001/api/allPlayers?today_only=true");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/allPlayers?today_only=true`);
         const data = await res.json();
         if (data.success) {
           setPlayers(data.players);

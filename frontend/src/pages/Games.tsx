@@ -76,7 +76,7 @@ const Games = () => {
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        const res = await fetch("http://localhost:5001/api/games/today");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/games/today`);
         const data = await res.json();
         if (data.success) {
           setGames(data.games);
