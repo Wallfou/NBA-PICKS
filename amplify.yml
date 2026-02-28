@@ -7,9 +7,6 @@ frontend:
         - npm ci
     build:
       commands:
-        # VITE_API_URL is set as an environment variable in the Amplify Console
-        # pointing to your Lambda API Gateway URL, e.g.:
-        # https://abc123.execute-api.us-east-1.amazonaws.com
         - npm run build
   artifacts:
     baseDirectory: frontend/dist

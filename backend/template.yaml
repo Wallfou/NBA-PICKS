@@ -4,13 +4,12 @@ Description: NBA Picks API — Flask backend on AWS Lambda + API Gateway
 
 Globals:
   Function:
-    Timeout: 120          # picks generation can take up to ~30s on cold cache
+    Timeout: 120
     MemorySize: 512
     Runtime: python3.11
     Environment:
       Variables:
         USE_REAL_ODDS: "true"
-        # Add your Odds API key here or pull from SSM / Secrets Manager:
         # ODDS_API_KEY: !Sub "{{resolve:ssm:/nba-picks/odds-api-key}}"
 
 Resources:
@@ -22,7 +21,6 @@ Resources:
       Handler: lambda_handler.handler
       Description: NBA player prop picks API
       Events:
-        # Catch-all route — API Gateway forwards every path/method to Flask
         ApiRoot:
           Type: HttpApi
           Properties:
