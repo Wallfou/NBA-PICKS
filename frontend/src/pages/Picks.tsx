@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import * as NBA_LOGOS from '../components/nbaLogos';
-import './Picks.css';
-
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import * as NBA_LOGOS from "../components/nbaLogos";
+import "./Picks.css";
 
 const TEAM_LOGO = ({ abbr, size }: { abbr: string; size: number }) => {
   const Logo = (
@@ -14,14 +13,14 @@ const TEAM_LOGO = ({ abbr, size }: { abbr: string; size: number }) => {
 
 interface Prediction {
   stat_type: string;
-  pick: 'OVER' | 'UNDER';
+  pick: "OVER" | "UNDER";
   confidence: number;
   line: number;
   average: number;
   last_5_avg: number;
   hit_rate: number;
   std_dev: number;
-  trend: 'up' | 'down' | 'neutral';
+  trend: "up" | "down" | "neutral";
   recent_games: number[];
   home_team: string;
   away_team: string;
@@ -48,13 +47,17 @@ interface TopPicksData {
 interface BarChartProps {
   values: number[];
   line: number;
-  pick: 'OVER' | 'UNDER';
+  pick: "OVER" | "UNDER";
 }
 
 const BarChart: React.FC<BarChartProps> = ({ values, line, pick }) => {
   // values come in most-recent-first; reverse so chart reads oldest→newest
   const games = [...values].reverse();
-  const [hover, setHover] = useState<null | { i: number, x: number; y: number }>(null);
+  const [hover, setHover] = useState<null | {
+    i: number;
+    x: number;
+    y: number;
+  }>(null);
 
   const W = 500;
   const H = 150;
@@ -70,12 +73,16 @@ const BarChart: React.FC<BarChartProps> = ({ values, line, pick }) => {
   const yScale = (v: number) => chartH - (v / max) * chartH;
   const lineY = yScale(line);
 
-  const isHit = (v: number) => pick === 'OVER' ? v > line : v < line;
+  const isHit = (v: number) => (pick === "OVER" ? v > line : v < line);
 
   return (
-    <div style={{ position: 'relative' }}>
-      <svg viewBox={`0 0 ${W} ${H}`} className="picks-chart" aria-hidden="true" onMouseLeave={() => setHover(null)}>
-        
+    <div style={{ position: "relative" }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="picks-chart"
+        aria-hidden="true"
+        onMouseLeave={() => setHover(null)}
+      >
         {/* Y-axis label ticks */}
         {[0, 0.5, 1].map((pct) => {
           const val = max * pct;
@@ -83,12 +90,16 @@ const BarChart: React.FC<BarChartProps> = ({ values, line, pick }) => {
           return (
             <g key={pct}>
               <line
-                x1={PAD.left} y1={y}
-                x2={PAD.left + chartW} y2={y}
-                stroke="rgba(255, 255, 255, 0.22)" strokeWidth={1}
+                x1={PAD.left}
+                y1={y}
+                x2={PAD.left + chartW}
+                y2={y}
+                stroke="rgba(255, 255, 255, 0.22)"
+                strokeWidth={1}
               />
               <text
-                x={PAD.left - 4} y={y + 4}
+                x={PAD.left - 4}
+                y={y + 4}
                 textAnchor="end"
                 fontSize={8}
                 fill="#555"
@@ -109,12 +120,12 @@ const BarChart: React.FC<BarChartProps> = ({ values, line, pick }) => {
           return (
             <g key={i}>
               <rect
-                x={x} 
+                x={x}
                 y={y}
-                width={effectiveBarW} 
+                width={effectiveBarW}
                 height={barH}
                 rx={2}
-                fill={hit ? 'rgba(51,143,74,0.75)' : 'rgba(200,60,60,0.65)'}
+                fill={hit ? "rgba(51,143,74,0.75)" : "rgba(200,60,60,0.65)"}
                 onMouseMove={(e) => {
                   const wrap = e.currentTarget.ownerSVGElement!;
                   const r = wrap.getBoundingClientRect();
@@ -136,9 +147,12 @@ const BarChart: React.FC<BarChartProps> = ({ values, line, pick }) => {
 
         {/* Prop line */}
         <line
-          x1={PAD.left} y1={PAD.top + lineY}
-          x2={PAD.left + chartW} y2={PAD.top + lineY}
-          stroke="#338f4a" strokeWidth={1.5}
+          x1={PAD.left}
+          y1={PAD.top + lineY}
+          x2={PAD.left + chartW}
+          y2={PAD.top + lineY}
+          stroke="#338f4a"
+          strokeWidth={1.5}
           strokeDasharray="5 3"
         />
         <text
@@ -152,8 +166,8 @@ const BarChart: React.FC<BarChartProps> = ({ values, line, pick }) => {
       </svg>
 
       {hover && (
-        <div 
-          style={{ 
+        <div
+          style={{
             position: "absolute",
             left: hover.x + 13,
             top: hover.y - 10,
@@ -164,39 +178,49 @@ const BarChart: React.FC<BarChartProps> = ({ values, line, pick }) => {
             color: "#fff",
             fontSize: 13,
             pointerEvents: "none",
-            whiteSpace: "nowrap", 
-          }}>
-            <div style={{ fontWeight: 800, marginBottom: 4}}>G{hover.i + 1}</div>
-            <div>Value: <b>{games[hover.i]}</b></div>
-            <div>Line: <b>{line}</b></div>
-            <div>Result:{" "}
-              <b style={{ color: isHit(games[hover.i]) ? "#4cbe6c" : "#e06060" }}>
-                {isHit(games[hover.i]) ? "HIT" : "MISS"}
-              </b>
-            </div>
+            whiteSpace: "nowrap",
+          }}
+        >
+          <div style={{ fontWeight: 800, marginBottom: 4 }}>G{hover.i + 1}</div>
+          <div>
+            Value: <b>{games[hover.i]}</b>
           </div>
-        )}
+          <div>
+            Line: <b>{line}</b>
+          </div>
+          <div>
+            Result:{" "}
+            <b style={{ color: isHit(games[hover.i]) ? "#4cbe6c" : "#e06060" }}>
+              {isHit(games[hover.i]) ? "HIT" : "MISS"}
+            </b>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 const TrendBadge: React.FC<{ trend: string }> = ({ trend }) => {
   const map: Record<string, { label: string; cls: string }> = {
-    up: { label: '▲ Trending up', cls: 'trend-up' },
-    down: { label: '▼ Trending down', cls: 'trend-down' },
-    neutral: { label: '— Neutral', cls: 'trend-neutral' },
+    up: { label: "▲ Trending up", cls: "trend-up" },
+    down: { label: "▼ Trending down", cls: "trend-down" },
+    neutral: { label: "— Neutral", cls: "trend-neutral" },
   };
   const t = map[trend] ?? map.neutral;
   return <span className={`trend-badge ${t.cls}`}>{t.label}</span>;
 };
 
-const fmt = (v: number) => (v != null && !isNaN(v) ? v.toFixed(1) : '—');
+const fmt = (v: number) => (v != null && !isNaN(v) ? v.toFixed(1) : "—");
 
 const formatTime = (iso: string) => {
   try {
-    return new Date(iso).toLocaleString('en-US', {
-      weekday: 'short', month: 'short', day: 'numeric',
-      hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+    return new Date(iso).toLocaleString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
     });
   } catch {
     return iso;
@@ -204,10 +228,146 @@ const formatTime = (iso: string) => {
 };
 
 const STAT_LABELS: Record<string, string> = {
-  PTS: 'Points', REB: 'Rebounds', AST: 'Assists',
-  BLK: 'Blocks', STL: 'Steals', FG3M: '3-Pointers',
+  PTS: "Points",
+  REB: "Rebounds",
+  AST: "Assists",
+  BLK: "Blocks",
+  STL: "Steals",
+  FG3M: "3-Pointers",
 };
 
+interface AltCalcProps {
+  recentGames: number[];
+  originalLine: number;
+  average: number;
+  currentLine: number;
+  onLineChange: (v: number) => void;
+  onReset: () => void;
+}
+
+const AltCalculator: React.FC<AltCalcProps> = ({
+  recentGames,
+  originalLine,
+  average,
+  currentLine,
+  onLineChange,
+  onReset,
+}) => {
+  const [altConfidence, setAltConfidence] = useState<number | null>(null);
+  const [calcLoading, setCalcLoading] = useState(false);
+  const [calculatedLine, setCalculatedLine] = useState<number | null>(null);
+
+  const altPick: "OVER" | "UNDER" = average >= currentLine ? "OVER" : "UNDER";
+
+  const altHits = recentGames.filter((v) =>
+    altPick === "OVER" ? v > currentLine : v < currentLine,
+  ).length;
+  const altHitRate =
+    recentGames.length > 0
+      ? Math.round((altHits / recentGames.length) * 100)
+      : 0;
+
+  const sliderMax = Math.ceil(Math.max(...recentGames, originalLine) * 1.2);
+  const isModified = currentLine !== originalLine;
+  const isStale = calculatedLine !== null && calculatedLine !== currentLine;
+
+  const handleCalculate = async () => {
+    setCalcLoading(true);
+    // TODO: call backend endpoint once implemented
+    setCalculatedLine(currentLine);
+    setCalcLoading(false);
+  };
+
+  const handleReset = () => {
+    onReset();
+    setAltConfidence(null);
+    setCalculatedLine(null);
+  };
+
+  return (
+    <div className="alt-calc">
+      <div className="alt-calc-title">Alternate line: </div>
+
+      <div className="alt-calc-slider-wrap">
+        <div className="alt-calc-line-display">
+          <span className="alt-calc-line-val">{currentLine}</span>
+          {isModified && (
+            <span className="alt-calc-line-original">original: {originalLine}</span>
+          )}
+        </div>
+        <input
+          type="range"
+          className="picks-slider"
+          value={currentLine}
+          step={0.5}
+          min={0}
+          max={sliderMax}
+          onChange={(e) => onLineChange(parseFloat(e.target.value))}
+        />
+        <div className="alt-calc-actions">
+          <button
+            className="alt-calc-submit-button"
+            disabled={calcLoading}
+            onClick={handleCalculate}
+          >
+            {calcLoading ? "Calculating…" : "Calculate"}
+          </button>
+          <button
+            className="pick-sec-reset-button"
+            disabled={!isModified}
+            onClick={handleReset}
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div className="alt-calc-stats">
+        <div className="alt-calc-stat">
+          <span
+            className={`alt-calc-stat-val alt-pick-badge alt-pick-badge--${altPick.toLowerCase()}`}
+          >
+            {altPick}
+          </span>
+          <span className="alt-calc-stat-label">Alt Pick</span>
+        </div>
+
+        <div className="alt-calc-stat">
+          {altConfidence !== null ? (
+            <>
+              <span className={`alt-calc-stat-val${isStale ? " alt-calc-stat-val--stale" : ""}`}>
+                {altConfidence}%
+              </span>
+              <div className="alt-confidence-bar">
+                <div
+                  className="alt-confidence-fill"
+                  style={{ width: `${altConfidence}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <span className="alt-calc-stat-val alt-calc-stat-val--empty">—</span>
+          )}
+          <span className="alt-calc-stat-label">
+            Alt Confidence{isStale ? " (stale)" : ""}
+          </span>
+        </div>
+
+        <div className="alt-calc-stat">
+          <span className="alt-calc-stat-val">{altHitRate}%</span>
+          <span className="alt-calc-stat-label">Alt Hit Rate</span>
+        </div>
+
+        <div className="alt-calc-stat">
+          <span className="alt-calc-stat-val">
+            {altHits}/{recentGames.length}
+          </span>
+          <span className="alt-calc-stat-label">Hits (recent)</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Picks = () => {
   const { playerName } = useParams<{ playerName: string }>();
@@ -224,6 +384,10 @@ const Picks = () => {
   const [topLoading, setTopLoading] = useState(!decoded);
   const [topError, setTopError] = useState<string | null>(null);
   const [playerIds, setPlayerIds] = useState<Record<string, number>>({});
+
+  const [lineOverrides, setLineOverrides] = useState<Record<string, number>>(
+    {},
+  );
 
   // Fetch player IDs for headshots (shared, from already-cached /api/players)
   useEffect(() => {
@@ -247,13 +411,19 @@ const Picks = () => {
   // Fetch top 5 picks when on /picks (no player param)
   useEffect(() => {
     if (decoded) return;
-    fetch(`${import.meta.env.VITE_API_URL}/api/picks/top?limit=10&min_confidence=65`)
+    fetch(
+      `${import.meta.env.VITE_API_URL}/api/picks/top?limit=10&min_confidence=65`,
+    )
       .then((r) => r.json())
       .then((d) => {
         if (d.success) setTopPicks(d);
-        else setTopError(d.error || 'Could not load top picks.');
+        else setTopError(d.error || "Could not load top picks.");
       })
-      .catch((e) => setTopError(e instanceof Error ? e.message : 'Could not connect to the server'))
+      .catch((e) =>
+        setTopError(
+          e instanceof Error ? e.message : "Could not connect to the server",
+        ),
+      )
       .finally(() => setTopLoading(false));
   }, [decoded]);
 
@@ -261,16 +431,22 @@ const Picks = () => {
   useEffect(() => {
     if (!decoded) return;
 
-    fetch(`${import.meta.env.VITE_API_URL}/api/picks/player/${encodeURIComponent(decoded)}`)
+    fetch(
+      `${import.meta.env.VITE_API_URL}/api/picks/player/${encodeURIComponent(decoded)}`,
+    )
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
           setData(d);
         } else {
-          setError(d.error || 'No picks found for this player.');
+          setError(d.error || "No picks found for this player.");
         }
       })
-      .catch((e) => setError(e instanceof Error ? e.message : 'Could not connect to the server'))
+      .catch((e) =>
+        setError(
+          e instanceof Error ? e.message : "Could not connect to the server",
+        ),
+      )
       .finally(() => setLoading(false));
   }, [decoded]);
 
@@ -285,7 +461,9 @@ const Picks = () => {
     if (topError || !topPicks) {
       return (
         <div className="picks-page">
-          <div className="picks-error"><span>{topError ?? 'No picks available.'}</span></div>
+          <div className="picks-error">
+            <span>{topError ?? "No picks available."}</span>
+          </div>
         </div>
       );
     }
@@ -295,88 +473,131 @@ const Picks = () => {
         <div className="picks-top-header">
           <h1>Top Picks For Today</h1>
           <div className="picks-top-subtitle">
-            {topPicks.count} picks · {topPicks.total_analyzed} predictions analyzed
-            <button className="picks-refresh-button" onClick={() => {
-            fetch(`${import.meta.env.VITE_API_URL}/api/picks/refresh`)
-              .then((r) => r.json())
-              .then((d) => {
-                if (d.success) {
-                  setTopPicks(d);
-                }
-              });
-          }}>Refresh Picks</button>
+            {topPicks.count} picks · {topPicks.total_analyzed} predictions
+            analyzed
+            <button
+              className="picks-refresh-button"
+              onClick={() => {
+                fetch(`${import.meta.env.VITE_API_URL}/api/picks/refresh`)
+                  .then((r) => r.json())
+                  .then((d) => {
+                    if (d.success) {
+                      setTopPicks(d);
+                    }
+                  });
+              }}
+            >
+              Refresh Picks
+            </button>
           </div>
         </div>
 
         <div className="picks-stats">
           {topPicks.picks.map((pred, i) => {
             const pid = playerIds[pred.player_name.toLowerCase()];
+            const keyForThisPick = `${pred.player_name}|${pred.stat_type}|${pred.commence_time}`;
+            const currentLine = lineOverrides[keyForThisPick] ?? pred.line;
             return (
-              <div
-                key={i}
-                className="picks-stat-card picks-stat-card--clickable"
-                onClick={() => navigate(`/picks/${encodeURIComponent(pred.player_name)}`)}
-              >
-                {/* Player row */}
-                <div className="picks-top-player-row">
-                  {pid && (
-                    <img
-                      className="picks-top-headshot"
-                      src={`https://cdn.nba.com/headshots/nba/latest/260x190/${pid}.png`}
-                      alt={pred.player_name}
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  )}
-                  <div className="picks-top-player-info">
-                    <span className="picks-top-player-name">{pred.player_name}</span>
-                    <span className="picks-top-game">
-                      {pred.away_team} @ {pred.home_team} · {formatTime(pred.commence_time)}
-                    </span>
+              <div key={i} className="picks-stat-wrap">
+                <div className="picks-stat-card">
+                  {/* Player row */}
+                  <div
+                    className="picks-top-player-row picks-top-player-row--clickable"
+                    onClick={() =>
+                      navigate(`/picks/${encodeURIComponent(pred.player_name)}`)
+                    }
+                  >
+                    {pid && (
+                      <img
+                        className="picks-top-headshot"
+                        src={`https://cdn.nba.com/headshots/nba/latest/260x190/${pid}.png`}
+                        alt={pred.player_name}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display =
+                            "none";
+                        }}
+                      />
+                    )}
+                    <div className="picks-top-player-info">
+                      <span className="picks-top-player-name">
+                        {pred.player_name}
+                      </span>
+                      <span className="picks-top-game">
+                        {pred.away_team} @ {pred.home_team} ·{" "}
+                        {formatTime(pred.commence_time)}
+                      </span>
+                    </div>
+                    <span className="picks-top-rank">#{i + 1}</span>
                   </div>
-                  <span className="picks-top-rank">#{i + 1}</span>
-                </div>
 
-                {/* Stat header */}
-                <div className="picks-stat-header">
-                  <span className="picks-stat-type">
-                    {STAT_LABELS[pred.stat_type] ?? pred.stat_type}
-                  </span>
-                  <div className="picks-stat-line-group">
-                    <span className="picks-line">{pred.line} {pred.stat_type}</span>
-                    <span className={`picks-pick picks-pick-${pred.pick.toLowerCase()}`}>
-                      {pred.pick}
+                  {/* Stat header */}
+                  <div className="picks-stat-header">
+                    <span className="picks-stat-type">
+                      {STAT_LABELS[pred.stat_type] ?? pred.stat_type}
                     </span>
-                  </div>
-                  <div className="picks-confidence-group">
-                    <span className="picks-confidence-label">Confidence</span>
-                    <span className="picks-confidence-value">{pred.confidence}%</span>
-                    <div className="picks-confidence-bar">
-                      <div className="picks-confidence-fill" style={{ width: `${pred.confidence}%` }} />
+                    <div className="picks-stat-line-group">
+                      <span className="picks-line">
+                        {pred.line} {pred.stat_type}
+                      </span>
+                      <span
+                        className={`picks-pick picks-pick-${pred.pick.toLowerCase()}`}
+                      >
+                        {pred.pick}
+                      </span>
+                    </div>
+                    <div className="picks-confidence-group">
+                      <span className="picks-confidence-label">Confidence</span>
+                      <span className="picks-confidence-value">
+                        {pred.confidence}%
+                      </span>
+                      <div className="picks-confidence-bar">
+                        <div
+                          className="picks-confidence-fill"
+                          style={{ width: `${pred.confidence}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
+
+                  <BarChart
+                    values={pred.recent_games}
+                    line={currentLine}
+                    pick={pred.pick}
+                  />
+
+                  <div className="picks-secondary">
+                    <div className="picks-sec-stat">
+                      <span className="picks-sec-val">{fmt(pred.average)}</span>
+                      <span className="picks-sec-label">Season Avg</span>
+                    </div>
+                    <div className="picks-sec-stat">
+                      <span className="picks-sec-val">{fmt(pred.last_5_avg)}</span>
+                      <span className="picks-sec-label">L5 Avg</span>
+                    </div>
+                    <div className="picks-sec-stat">
+                      <span className="picks-sec-val">{pred.hit_rate}%</span>
+                      <span className="picks-sec-label">Hit Rate</span>
+                    </div>
+                    <div className="picks-sec-stat">
+                      <span className="picks-sec-val">{fmt(pred.std_dev)}</span>
+                      <span className="picks-sec-label">Std Dev</span>
+                    </div>
+                    <TrendBadge trend={pred.trend} />
+                  </div>
                 </div>
 
-                <BarChart values={pred.recent_games} line={pred.line} pick={pred.pick} />
-
-                <div className="picks-secondary">
-                  <div className="picks-sec-stat">
-                    <span className="picks-sec-val">{fmt(pred.average)}</span>
-                    <span className="picks-sec-label">Season Avg</span>
-                  </div>
-                  <div className="picks-sec-stat">
-                    <span className="picks-sec-val">{fmt(pred.last_5_avg)}</span>
-                    <span className="picks-sec-label">L5 Avg</span>
-                  </div>
-                  <div className="picks-sec-stat">
-                    <span className="picks-sec-val">{pred.hit_rate}%</span>
-                    <span className="picks-sec-label">Hit Rate</span>
-                  </div>
-                  <div className="picks-sec-stat">
-                    <span className="picks-sec-val">{fmt(pred.std_dev)}</span>
-                    <span className="picks-sec-label">Std Dev</span>
-                  </div>
-                  <TrendBadge trend={pred.trend} />
-                </div>
+                <AltCalculator
+                  recentGames={pred.recent_games}
+                  originalLine={pred.line}
+                  average={pred.average}
+                  currentLine={currentLine}
+                  onLineChange={(v) =>
+                    setLineOverrides((prev) => ({ ...prev, [keyForThisPick]: v }))
+                  }
+                  onReset={() =>
+                    setLineOverrides((prev) => ({ ...prev, [keyForThisPick]: pred.line }))
+                  }
+                />
               </div>
             );
           })}
@@ -396,20 +617,20 @@ const Picks = () => {
   if (error || !data) {
     return (
       <div className="picks-page">
-        <button className="picks-back" onClick={() => navigate('/players')}>
+        <button className="picks-back" onClick={() => navigate("/players")}>
           ← Back to Players
         </button>
         <div className="picks-error">
-          <span>{error ?? 'No data available.'}</span>
+          <span>{error ?? "No data available."}</span>
         </div>
       </div>
     );
   }
 
   const { event_info, predictions } = data;
-  const statOrder = ['PTS', 'REB', 'AST', 'FG3M', 'BLK', 'STL'];
+  const statOrder = ["PTS", "REB", "AST", "FG3M", "BLK", "STL"];
   const sorted = [...predictions].sort(
-    (a, b) => statOrder.indexOf(a.stat_type) - statOrder.indexOf(b.stat_type)
+    (a, b) => statOrder.indexOf(a.stat_type) - statOrder.indexOf(b.stat_type),
   );
 
   // Determine which team the player is on from the raw_odds data
@@ -419,7 +640,7 @@ const Picks = () => {
 
   return (
     <div className="picks-page">
-      <button className="picks-back" onClick={() => navigate('/players')}>
+      <button className="picks-back" onClick={() => navigate("/players")}>
         ← Back to Players
       </button>
 
@@ -431,19 +652,31 @@ const Picks = () => {
               className="picks-headshot"
               src={`https://cdn.nba.com/headshots/nba/latest/260x190/${playerId}.png`}
               alt={decoded}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
             />
           )}
           <div className="picks-player-info">
             <h1>{decoded}</h1>
-            {event_info.commence_time !== 'N/A' && (
+            {event_info.commence_time !== "N/A" && (
               <div className="picks-game-info">
                 <div className="picks-matchup">
-                  <TEAM_LOGO abbr={awayTeam.split(' ').pop()!.toUpperCase()} size={28} />
-                  <span className="picks-matchup-teams">{awayTeam} @ {homeTeam}</span>
-                  <TEAM_LOGO abbr={homeTeam.split(' ').pop()!.toUpperCase()} size={28} />
+                  <TEAM_LOGO
+                    abbr={awayTeam.split(" ").pop()!.toUpperCase()}
+                    size={28}
+                  />
+                  <span className="picks-matchup-teams">
+                    {awayTeam} @ {homeTeam}
+                  </span>
+                  <TEAM_LOGO
+                    abbr={homeTeam.split(" ").pop()!.toUpperCase()}
+                    size={28}
+                  />
                 </div>
-                <p className="picks-game-time">{formatTime(event_info.commence_time)}</p>
+                <p className="picks-game-time">
+                  {formatTime(event_info.commence_time)}
+                </p>
               </div>
             )}
           </div>
@@ -452,60 +685,83 @@ const Picks = () => {
 
       {/* Stat cards */}
       <div className="picks-stats">
-        {sorted.map((pred) => (
-          <div key={pred.stat_type} className="picks-stat-card">
-            {/* Card header */}
-            <div className="picks-stat-header">
-              <span className="picks-stat-type">
-                {STAT_LABELS[pred.stat_type] ?? pred.stat_type}
-              </span>
-              <div className="picks-stat-line-group">
-                <span className="picks-line">{pred.line} {pred.stat_type}</span>
-                <span className={`picks-pick picks-pick-${pred.pick.toLowerCase()}`}>
-                  {pred.pick}
+        {sorted.map((pred) => {
+          const key = `${pred.stat_type}|${pred.commence_time}`;
+          const currentLine = lineOverrides[key] ?? pred.line;
+          return (
+          <div key={pred.stat_type} className="picks-stat-wrap">
+            <div className="picks-stat-card">
+              {/* Card header */}
+              <div className="picks-stat-header">
+                <span className="picks-stat-type">
+                  {STAT_LABELS[pred.stat_type] ?? pred.stat_type}
                 </span>
-              </div>
-              <div className="picks-confidence-group">
-                <span className="picks-confidence-label">Confidence</span>
-                <span className="picks-confidence-value">{pred.confidence}%</span>
-                <div className="picks-confidence-bar">
-                  <div
-                    className="picks-confidence-fill"
-                    style={{ width: `${pred.confidence}%` }}
-                  />
+                <div className="picks-stat-line-group">
+                  <span className="picks-line">
+                    {pred.line} {pred.stat_type}
+                  </span>
+                  <span
+                    className={`picks-pick picks-pick-${pred.pick.toLowerCase()}`}
+                  >
+                    {pred.pick}
+                  </span>
+                </div>
+                <div className="picks-confidence-group">
+                  <span className="picks-confidence-label">Confidence</span>
+                  <span className="picks-confidence-value">
+                    {pred.confidence}%
+                  </span>
+                  <div className="picks-confidence-bar">
+                    <div
+                      className="picks-confidence-fill"
+                      style={{ width: `${pred.confidence}%` }}
+                    />
+                  </div>
                 </div>
               </div>
+
+              <BarChart
+                values={pred.recent_games}
+                line={currentLine}
+                pick={pred.pick}
+              />
+
+              <div className="picks-secondary">
+                <div className="picks-sec-stat">
+                  <span className="picks-sec-val">{fmt(pred.average)}</span>
+                  <span className="picks-sec-label">Season Avg</span>
+                </div>
+                <div className="picks-sec-stat">
+                  <span className="picks-sec-val">{fmt(pred.last_5_avg)}</span>
+                  <span className="picks-sec-label">L5 Avg</span>
+                </div>
+                <div className="picks-sec-stat">
+                  <span className="picks-sec-val">{pred.hit_rate}%</span>
+                  <span className="picks-sec-label">Hit Rate</span>
+                </div>
+                <div className="picks-sec-stat">
+                  <span className="picks-sec-val">{fmt(pred.std_dev)}</span>
+                  <span className="picks-sec-label">Std Dev</span>
+                </div>
+                <TrendBadge trend={pred.trend} />
+              </div>
             </div>
 
-            {/* Bar chart */}
-            <BarChart
-              values={pred.recent_games}
-              line={pred.line}
-              pick={pred.pick}
+            <AltCalculator
+              recentGames={pred.recent_games}
+              originalLine={pred.line}
+              average={pred.average}
+              currentLine={currentLine}
+              onLineChange={(v) =>
+                setLineOverrides((prev) => ({ ...prev, [key]: v }))
+              }
+              onReset={() =>
+                setLineOverrides((prev) => ({ ...prev, [key]: pred.line }))
+              }
             />
-
-            {/* Secondary stats */}
-            <div className="picks-secondary">
-              <div className="picks-sec-stat">
-                <span className="picks-sec-val">{fmt(pred.average)}</span>
-                <span className="picks-sec-label">Season Avg</span>
-              </div>
-              <div className="picks-sec-stat">
-                <span className="picks-sec-val">{fmt(pred.last_5_avg)}</span>
-                <span className="picks-sec-label">L5 Avg</span>
-              </div>
-              <div className="picks-sec-stat">
-                <span className="picks-sec-val">{pred.hit_rate}%</span>
-                <span className="picks-sec-label">Hit Rate</span>
-              </div>
-              <div className="picks-sec-stat">
-                <span className="picks-sec-val">{fmt(pred.std_dev)}</span>
-                <span className="picks-sec-label">Std Dev</span>
-              </div>
-              <TrendBadge trend={pred.trend} />
-            </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
