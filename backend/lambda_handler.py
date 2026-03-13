@@ -1,8 +1,9 @@
 """
 AWS Lambda entry point.
-Mangum wraps the Flask WSGI app so Lambda can invoke it via API Gateway.
+Flask is WSGI; a2wsgi bridges it to ASGI so Mangum can wrap it for Lambda
 """
 from mangum import Mangum
+from a2wsgi import WSGIMiddleware
 from app import app
 
-handler = Mangum(app, lifespan="off")
+handler = Mangum(WSGIMiddleware(app), lifespan="off")
