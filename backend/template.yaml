@@ -11,6 +11,18 @@ Globals:
       Variables:
         USE_REAL_ODDS: "true"
         # ODDS_API_KEY: !Sub "{{resolve:ssm:/nba-picks/odds-api-key}}"
+  HttpApi:
+    CorsConfiguration:
+      AllowOrigins:
+        - "https://main.d1u82ndbyl4zb.amplifyapp.com"
+        - "http://localhost:5173"
+      AllowMethods:
+        - GET
+        - POST
+        - OPTIONS
+      AllowHeaders:
+        - Content-Type
+        - Authorization
 
 Resources:
   NbaPicksFunction:
