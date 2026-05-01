@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 import time
 import os
+import json
 import pandas as pd
 
 app = Flask(__name__)
@@ -82,74 +83,51 @@ players_cache = {
     'ttl': 86400
 }
 
-
-def get_player_id_mapping():
-    """
-    Create mapping of player names to IDs from odds data
-    This helps match odds API names with NBA API data (will expand later to reduce api calls)
-    """
-    KNOWN_PLAYERS = {
-        'Stephen Curry': 201939,
-        'LeBron James': 2544,
-        'Nikola Jokic': 203999,
-        'Giannis Antetokounmpo': 203507,
-        'Luka Doncic': 1629029,
-        'Kevin Durant': 201142,
-        'Joel Embiid': 203954,
-        'Damian Lillard': 203081,
-        'Jayson Tatum': 1628369,
-        'Anthony Davis': 203076,
-        'Devin Booker': 1626164,
-        'Shai Gilgeous-Alexander': 1628983,
-        'Donovan Mitchell': 1628378,
-        'Tyrese Maxey': 1630178,
-        "De'Aaron Fox": 1628368,
-        'Trae Young': 1629027,
-        'Karl-Anthony Towns': 1626157,
-        'Pascal Siakam': 1627783,
-        'Julius Randle': 203944,
-        'Jalen Brunson': 1628973,
-        'Anthony Edwards': 1630162,
-        'Ja Morant': 1629630,
-        'Jimmy Butler': 202710,
-        'Kawhi Leonard': 202695,
-        'Paul George': 202331,
-        'Kyrie Irving': 202681,
-        'Bam Adebayo': 1628389,
-        'Bradley Beal': 203078,
-        'Zion Williamson': 1629627,
-        'Brandon Ingram': 1627742,
-        'Egot Demin': 183714,
-
-    }
-    return KNOWN_PLAYERS
+PLAYERS_CACHE_FILE = os.path.join(os.path.dirname(__file__), 'cache', 'active_players.json')
 
 
-def fetch_player_id_from_nba_api(player_name: str):
-    """
-    Fallback: try to find player id with nba api
-    """
+def _load_players_disk_cache():
+    """Load the on-disk players cache into the in-memory cache if it exists and is fresh."""
     try:
-        from nba_api.stats.static import players
-        all_players = players.get_active_players()
-        
-        for player in all_players:
-            if player['full_name'].lower() == player_name.lower():
-                return player['id']
-        
-        # fuzzy match
-        last_name = player_name.split()[-1].lower()
-        for player in all_players:
-            if last_name in player['full_name'].lower():
-                return player['id']
-        
-        return None
-    except ImportError:
-        print(f"nba_api package not installed. Cannot lookup player {player_name}")
-        return None
+        with open(PLAYERS_CACHE_FILE) as f:
+            payload = json.load(f)
+        ts = datetime.fromisoformat(payload['timestamp'])
+        if (datetime.now() - ts).total_seconds() < players_cache['ttl']:
+            players_cache['data'] = payload['players']
+            players_cache['timestamp'] = ts
+            return True
+    except (FileNotFoundError, KeyError, ValueError):
+        pass
+    return False
+
+
+def _save_players_disk_cache(players, timestamp):
+    os.makedirs(os.path.dirname(PLAYERS_CACHE_FILE), exist_ok=True)
+    with open(PLAYERS_CACHE_FILE, 'w') as f:
+        json.dump({'timestamp': timestamp.isoformat(), 'players': players}, f)
+
+
+def _get_cached_active_players():
+    """Return the cached active-players list, refreshing it from ESPN if stale.
+    Layered cache: in-memory → on-disk JSON → ESPN."""
+    if players_cache['data'] and players_cache['timestamp']:
+        age = (datetime.now() - players_cache['timestamp']).total_seconds()
+        if age < players_cache['ttl']:
+            return players_cache['data']
+
+    if _load_players_disk_cache():
+        return players_cache['data']
+
+    players = fetcher.get_active_players_with_stats()
+    players.sort(key=lambda p: p['name'])
+    now = datetime.now()
+    players_cache['data'] = players
+    players_cache['timestamp'] = now
+    try:
+        _save_players_disk_cache(players, now)
     except Exception as e:
-        print(f"Error looking up player {player_name}: {e}")
-        return None
+        print(f"Failed to write players disk cache: {e}")
+    return players
 
 
 def _days_since_last_game(game_logs) -> int | None:
@@ -189,17 +167,15 @@ def generate_all_picks(force_refresh: bool = False):
         return [], raw_odds
     
     print("\nMapping player names to IDs...")
-    player_id_map = get_player_id_mapping()
+    active_players = _get_cached_active_players()
+    player_id_map = {p['name']: p['id'] for p in active_players}
 
-    # Resolve player IDs (mostly dict lookup, sequential and fast)
     resolved = {}   # player_name -> (player_id, prop_lines)
     skipped_no_id = []
     for player_name, prop_lines in simple_props.items():
         player_id = player_id_map.get(player_name)
         if not player_id:
-            player_id = fetch_player_id_from_nba_api(player_name)
-            if player_id:
-                player_id_map[player_name] = player_id
+            player_id = fetcher.find_player_id(player_name, active_players)
         if player_id:
             resolved[player_name] = (player_id, prop_lines)
         else:
@@ -214,7 +190,7 @@ def generate_all_picks(force_refresh: bool = False):
     def _fetch_logs(item):
         pname, (pid, _) = item
         try:
-            time.sleep(0.6)
+            time.sleep(1.5)
             logs = fetcher.get_player_stats(pid, num_games=15, timeout=30)
             return pname, logs, None
         except Exception as exc:
@@ -223,7 +199,7 @@ def generate_all_picks(force_refresh: bool = False):
     game_log_map = {}   # player_name -> DataFrame | None
     error_map = {}      # player_name -> exception
 
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    with ThreadPoolExecutor(max_workers=2) as pool:
         futures = {pool.submit(_fetch_logs, item): item[0] for item in resolved.items()}
         for future in as_completed(futures):
             pname, logs, exc = future.result()
@@ -488,50 +464,36 @@ def get_players():
     try:
         today_only = request.args.get('today_only', 'false').lower() == 'true'
 
-        if players_cache['data'] and players_cache['timestamp']:
+        cached = players_cache['data'] and players_cache['timestamp']
+        if cached:
             age = (datetime.now() - players_cache['timestamp']).total_seconds()
             if age < players_cache['ttl']:
                 print(f"Using cached players (age: {int(age)}s)")
                 players = players_cache['data']
-                if today_only:
-                    players = _filter_players_today(players)
+                filtered = _filter_players_today(players) if today_only else players
                 return jsonify({
                     'success': True,
-                    'count': len(players),
-                    'players': players
+                    'count': len(filtered),
+                    'players': filtered
                 })
 
-        from nba_api.stats.endpoints import playerindex
-
-        print("Fetching player index from NBA API...")
-        df = None
-        for attempt in range(3):
-            try:
-                idx = playerindex.PlayerIndex(season='2025-26', league_id='00', timeout=30)
-                df = idx.get_data_frames()[0]
-                break
-            except Exception as e:
-                print(f"PlayerIndex attempt {attempt + 1} failed: {e}")
-                if attempt < 2:
-                    time.sleep(2)
-        if df is None:
+        print("Fetching player index from ESPN...")
+        try:
+            raw = fetcher.get_active_players_with_stats()
+        except Exception as e:
+            print(f"ESPN player index failed: {e}")
             return jsonify({'success': False, 'error': 'API unavailable, try again'}), 503
 
-        # Keep only active roster players
-        df = df[df['ROSTER_STATUS'] == 1].copy()
-
-        players = []
-        for _, row in df.iterrows():
-            players.append({
-                'id': int(row['PERSON_ID']),
-                'name': f"{row['PLAYER_FIRST_NAME']} {row['PLAYER_LAST_NAME']}",
-                'team': str(row.get('TEAM_ABBREVIATION', '') or ''),
-                'jersey': '' if str(row.get('JERSEY_NUMBER', '')).lower() == 'nan' else str(row.get('JERSEY_NUMBER', '')),
-                'position': str(row.get('POSITION', '') or ''),
-                'pts': round(safe_float(row.get('PTS'), 0.0), 1),
-                'reb': round(safe_float(row.get('REB'), 0.0), 1),
-                'ast': round(safe_float(row.get('AST'), 0.0), 1),
-            })
+        players = [{
+            'id': p['id'],
+            'name': p['name'],
+            'team': p['team'],
+            'jersey': p['jersey'],
+            'position': p['position'],
+            'pts': round(safe_float(p.get('pts'), 0.0), 1),
+            'reb': round(safe_float(p.get('reb'), 0.0), 1),
+            'ast': round(safe_float(p.get('ast'), 0.0), 1),
+        } for p in raw]
 
         players.sort(key=lambda p: p['name'])
 
@@ -674,4 +636,4 @@ def internal_error(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=True, host='0.0.0.0', port=5001, use_reloader=False)
