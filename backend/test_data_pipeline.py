@@ -1,6 +1,6 @@
 """
 Test script to verify data fetching and prediction pipeline
-Run this to test your complete workflow
+For simple smoke testing and debugging
 """
 
 from src.fetcher import NBAFetcher
@@ -20,17 +20,21 @@ TEST_PLAYERS = {
     'Anthony Davis': 203076
 }
 
+def _line(value: float, over: int = -110, under: int = -110):
+    return {'line': value, 'over_price': over, 'under_price': under}
+
+
 ESTIMATED_PROP_LINES = {
-    'Stephen Curry': {'PTS': 27.5, 'AST': 6.5, 'REB': 4.5, 'FG3M': 4.5},
-    'LeBron James': {'PTS': 24.5, 'AST': 8.5, 'REB': 7.5},
-    'Nikola Jokic': {'PTS': 28.5, 'AST': 9.5, 'REB': 12.5},
-    'Giannis Antetokounmpo': {'PTS': 30.5, 'AST': 5.5, 'REB': 11.5},
-    'Luka Doncic': {'PTS': 31.5, 'AST': 8.5, 'REB': 8.5},
-    'Kevin Durant': {'PTS': 27.5, 'AST': 5.5, 'REB': 6.5},
-    'Joel Embiid': {'PTS': 29.5, 'AST': 5.5, 'REB': 10.5},
-    'Damian Lillard': {'PTS': 25.5, 'AST': 6.5, 'REB': 4.5},
-    'Jayson Tatum': {'PTS': 28.5, 'AST': 5.5, 'REB': 8.5},
-    'Anthony Davis': {'PTS': 26.5, 'AST': 3.5, 'REB': 11.5}
+    'Stephen Curry': {'PTS': _line(27.5), 'AST': _line(6.5), 'REB': _line(4.5), 'FG3M': _line(4.5)},
+    'LeBron James': {'PTS': _line(24.5), 'AST': _line(8.5), 'REB': _line(7.5)},
+    'Nikola Jokic': {'PTS': _line(28.5), 'AST': _line(9.5), 'REB': _line(12.5)},
+    'Giannis Antetokounmpo': {'PTS': _line(30.5), 'AST': _line(5.5), 'REB': _line(11.5)},
+    'Luka Doncic': {'PTS': _line(31.5), 'AST': _line(8.5), 'REB': _line(8.5)},
+    'Kevin Durant': {'PTS': _line(27.5), 'AST': _line(5.5), 'REB': _line(6.5)},
+    'Joel Embiid': {'PTS': _line(29.5), 'AST': _line(5.5), 'REB': _line(10.5)},
+    'Damian Lillard': {'PTS': _line(25.5), 'AST': _line(6.5), 'REB': _line(4.5)},
+    'Jayson Tatum': {'PTS': _line(28.5), 'AST': _line(5.5), 'REB': _line(8.5)},
+    'Anthony Davis': {'PTS': _line(26.5), 'AST': _line(3.5), 'REB': _line(11.5)}
 }
 
 
@@ -50,7 +54,7 @@ def test_single_player(player_name: str):
         print(f"\nRecent stats preview: ")
         print(game_logs[['GAME_DATE', 'PTS', 'AST', 'REB']].head(10))
         
-        prop_lines = ESTIMATED_PROP_LINES.get(player_name, {'PTS': 25.5})
+        prop_lines = ESTIMATED_PROP_LINES.get(player_name, {'PTS': _line(25.5)})
         
         print(f"\nAnalyzing props with lines: {prop_lines}")
         predictions = analyzer.analyze_player(game_logs, player_name, prop_lines)
@@ -81,7 +85,7 @@ def test_multiple_players():
             print(f"\nFetching {player_name}")
             game_logs = fetcher.get_player_stats(player_id, num_games=15)
             
-            prop_lines = ESTIMATED_PROP_LINES.get(player_name, {'PTS': 25.5})
+            prop_lines = ESTIMATED_PROP_LINES.get(player_name, {'PTS': _line(25.5)})
             predictions = analyzer.analyze_player(game_logs, player_name, prop_lines)
             
             all_predictions.extend(predictions)
@@ -94,7 +98,7 @@ def test_multiple_players():
     
     print(f"TOP 5 MOST CONFIDENT PICKS")
     
-    top_picks = analyzer.rank_picks(all_predictions, min_confidence=60.0, top_n=5)
+    top_picks = analyzer.rank_picks(all_predictions, min_ev=0.0, top_n=5)
     
     for i, pick in enumerate(top_picks, 1):
         print(f"\n#{i}")

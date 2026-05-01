@@ -316,23 +316,24 @@ def get_top_picks():
     """
     try:
         stat_type = request.args.get('stat_type', None)
-        min_confidence = float(request.args.get('min_confidence', 65.0))
+        min_confidence = float(request.args.get('min_confidence', 0.0))
+        min_ev = float(request.args.get('min_ev', 0.0))
         limit = int(request.args.get('limit', 5))
         pick_type = request.args.get('pick_type', None)
         force_refresh = request.args.get('refresh', 'false').lower() == 'true'
-        
+
         all_predictions, raw_odds = generate_all_picks(force_refresh=force_refresh)
-        
+
         filtered = all_predictions
-        
+
         if stat_type:
             filtered = [p for p in filtered if p['stat_type'] == stat_type]
-        
+
         if pick_type:
             filtered = [p for p in filtered if p['pick'] == pick_type.upper()]
-        
-        top_picks = analyzer.rank_picks(filtered, min_confidence=min_confidence, top_n=limit)
-        
+
+        top_picks = analyzer.rank_picks(filtered, min_ev=min_ev, min_confidence=min_confidence, top_n=limit)
+
         return jsonify({
             'success': True,
             'count': len(top_picks),
@@ -342,6 +343,7 @@ def get_top_picks():
                 'stat_type': stat_type,
                 'pick_type': pick_type,
                 'min_confidence': min_confidence,
+                'min_ev': min_ev,
                 'limit': limit
             },
             'cache_age_seconds': int((datetime.now() - picks_cache['timestamp']).total_seconds()) if picks_cache['timestamp'] else None,

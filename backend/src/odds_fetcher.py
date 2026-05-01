@@ -372,25 +372,43 @@ def get_odds_fetcher(use_real_api: bool = True):
         return MockOddsFetcher()
 
 
-def convert_to_simple_format(player_props: Dict[str, Dict]) -> Dict[str, Dict[str, float]]:
-    
+# this was changed to take median over under prices at the concensus line
+# concensus line is the median over line, more stable than previous implementation, which took lowest and highest lines
+def convert_to_simple_format(player_props: Dict[str, Dict]) -> Dict[str, Dict[str, Dict]]:
+
     simple_props = {}
-    
+
     for player_name, player_data in player_props.items():
         simple_props[player_name] = {}
-        
+
         props = player_data.get('props', {})
-        
+
         for stat_type, lines in props.items():
-            # Get all over lines from all bookmakers
-            over_lines = [l['line'] for l in lines if l['name'] == 'Over']
-            
-            if over_lines:
-                # Use median line as the consensus
-                over_lines.sort()
-                median_idx = len(over_lines) // 2
-                simple_props[player_name][stat_type] = over_lines[median_idx]
-    
+            overs = [l for l in lines if l['name'] == 'Over']
+            unders = [l for l in lines if l['name'] == 'Under']
+
+            if not overs:
+                continue
+
+            # median over line is the consensus, prices below are at that line
+            sorted_over_lines = sorted(l['line'] for l in overs)
+            consensus_line = sorted_over_lines[len(sorted_over_lines) // 2]
+
+            over_prices = sorted(
+                l['price'] for l in overs
+                if l['line'] == consensus_line and l['price'] is not None
+            )
+            under_prices = sorted(
+                l['price'] for l in unders
+                if l['line'] == consensus_line and l['price'] is not None
+            )
+
+            simple_props[player_name][stat_type] = {
+                'line': consensus_line,
+                'over_price': over_prices[len(over_prices) // 2] if over_prices else None,
+                'under_price': under_prices[len(under_prices) // 2] if under_prices else None,
+            }
+
     return simple_props
 
 
