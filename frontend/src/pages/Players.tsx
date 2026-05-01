@@ -12,7 +12,7 @@ const TEAM_LOGO = ({ abbr, size }: { abbr: string; size: number }) => {
 };
 
 const HEADSHOT_URL = (id: number) =>
-  `https://cdn.nba.com/headshots/nba/latest/260x190/${id}.png`;
+  `https://a.espncdn.com/i/headshots/nba/players/full/${id}.png`;
 
 interface Player {
   id: number;

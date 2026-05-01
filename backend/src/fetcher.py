@@ -13,6 +13,20 @@ HEADERS = {
     "Accept": "application/json",
 }
 
+# ESPN abbreviates a handful of teams differently from the NBA's standard
+# 3-char codes. Normalize so downstream consumers can rely on the canonical form
+TEAM_ABBR_OVERRIDES = {
+    "GS": "GSW",
+    "NO": "NOP",
+    "NY": "NYK",
+    "SA": "SAS",
+    "UTAH": "UTA",
+}
+
+
+def _normalize_abbr(abbr: str) -> str:
+    return TEAM_ABBR_OVERRIDES.get(abbr, abbr)
+
 
 def _to_float(value, default=0.0):
     try:
@@ -60,8 +74,8 @@ class NBAFetcher:
                     competitors = competitions[0].get("competitors") or []
                     home = next((c for c in competitors if c.get("homeAway") == "home"), {})
                     away = next((c for c in competitors if c.get("homeAway") == "away"), {})
-                    home_abbr = (home.get("team") or {}).get("abbreviation") or ""
-                    away_abbr = (away.get("team") or {}).get("abbreviation") or ""
+                    home_abbr = _normalize_abbr((home.get("team") or {}).get("abbreviation") or "")
+                    away_abbr = _normalize_abbr((away.get("team") or {}).get("abbreviation") or "")
                     venue = (competitions[0].get("venue") or {}).get("fullName") or ""
                     status = (ev.get("status") or {}).get("type") or {}
                     rows.append({
@@ -184,6 +198,7 @@ class NBAFetcher:
                 team_abbr = teams[0].get("abbreviation") or ""
             elif athlete.get("teamShortName"):
                 team_abbr = athlete["teamShortName"]
+            team_abbr = _normalize_abbr(team_abbr)
 
             position = (athlete.get("position") or {}).get("abbreviation") or ""
 

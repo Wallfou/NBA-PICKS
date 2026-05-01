@@ -510,7 +510,7 @@ const Picks = () => {
                     {pid && (
                       <img
                         className="picks-top-headshot"
-                        src={`https://cdn.nba.com/headshots/nba/latest/260x190/${pid}.png`}
+                        src={`https://a.espncdn.com/i/headshots/nba/players/full/${pid}.png`}
                         alt={pred.player_name}
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).style.display =
@@ -650,7 +650,7 @@ const Picks = () => {
           {playerId && (
             <img
               className="picks-headshot"
-              src={`https://cdn.nba.com/headshots/nba/latest/260x190/${playerId}.png`}
+              src={`https://a.espncdn.com/i/headshots/nba/players/full/${playerId}.png`}
               alt={decoded}
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";

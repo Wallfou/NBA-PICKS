@@ -175,6 +175,17 @@ The old code passed NBA-issued player IDs (e.g. `201939` for Stephen
 Curry). The new code passes ESPN-issued player IDs (e.g. `3975` for
 Stephen Curry).
 
+### Frontend headshot URL swap
+
+The headshot CDN was tied to the old NBA IDs, so player photos broke after the ID swap. Updated both `Players.tsx` and `Picks.tsx` to use ESPN's CDN, which works with the new IDs:
+
+- Old: `https://cdn.nba.com/headshots/nba/latest/260x190/{id}.png`
+- New: `https://a.espncdn.com/i/headshots/nba/players/full/{id}.png`
+
+### Team abbreviation normalization
+
+ESPN uses non-standard 2- or 4-char abbreviations for five teams: `NY`, `GS`, `NO`, `SA`, `UTAH`. The frontend's `parseTeams()` slices `GAMECODE` assuming exactly 3 chars per team, so `NY` + `ATL` came out as `NYA` / `TL` and broke logo and name lookups. Added a `TEAM_ABBR_OVERRIDES` map and `_normalize_abbr()` helper in `fetcher.py` that converts ESPN's codes to the NBA standard (`NY → NYK`, `GS → GSW`, `NO → NOP`, `SA → SAS`, `UTAH → UTA`). Applied in both `get_today_games()` and `get_active_players_with_stats()` so all downstream consumers see consistent 3-char codes.
+
 ## Possible improvements
 
 2. Increase parallelism in `generate_all_picks` (currently `max_workers=2`, `sleep=1.5s` — tuned for stats.nba.com). ESPN can handle 4–5 workers at 0.3s spacing.
