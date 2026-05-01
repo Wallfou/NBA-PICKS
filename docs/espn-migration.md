@@ -186,6 +186,14 @@ The headshot CDN was tied to the old NBA IDs, so player photos broke after the I
 
 ESPN uses non-standard 2- or 4-char abbreviations for five teams: `NY`, `GS`, `NO`, `SA`, `UTAH`. The frontend's `parseTeams()` slices `GAMECODE` assuming exactly 3 chars per team, so `NY` + `ATL` came out as `NYA` / `TL` and broke logo and name lookups. Added a `TEAM_ABBR_OVERRIDES` map and `_normalize_abbr()` helper in `fetcher.py` that converts ESPN's codes to the NBA standard (`NY → NYK`, `GS → GSW`, `NO → NOP`, `SA → SAS`, `UTAH → UTA`). Applied in both `get_today_games()` and `get_active_players_with_stats()` so all downstream consumers see consistent 3-char codes.
 
+### Player name normalization
+
+The Odds API spells generational suffixes without a period (`"Tim Hardaway Jr"`, `"Kelly Oubre Jr"`) while ESPN includes one (`"Tim Hardaway Jr."`). Exact lowercase string matching missed these players in two places:
+- `_filter_players_today()` in `app.py` filtered them out of `/api/allPlayers?today_only=true`.
+- The fuzzy fallback in `find_player_id()` treated `"jr"` as the last name and matched the first random player containing `"jr"`.
+
+Added a `normalize_name()` helper in `fetcher.py` that lowercases and strips periods/commas, plus a `_NAME_SUFFIXES` set (`jr`, `sr`, `ii`, `iii`, `iv`) used to skip suffix tokens during fuzzy last-name matching. Applied in `find_player_id()`, `_filter_players_today()`, and `generate_all_picks()`'s ID lookup.
+
 ## Possible improvements
 
 2. Increase parallelism in `generate_all_picks` (currently `max_workers=2`, `sleep=1.5s` — tuned for stats.nba.com). ESPN can handle 4–5 workers at 0.3s spacing.

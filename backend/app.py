@@ -5,7 +5,7 @@ Integrated with premium odds API fetcher
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from src.fetcher import NBAFetcher
+from src.fetcher import NBAFetcher, normalize_name
 from src.analyzer import NBAAnalyzer
 from src.odds_fetcher import get_odds_fetcher, convert_to_simple_format
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -168,12 +168,13 @@ def generate_all_picks(force_refresh: bool = False):
     
     print("\nMapping player names to IDs...")
     active_players = _get_cached_active_players()
-    player_id_map = {p['name']: p['id'] for p in active_players}
+    # Normalized lookup so suffix variants ("Jr" vs "Jr.") match across sources.
+    norm_id_map = {normalize_name(p['name']): p['id'] for p in active_players}
 
     resolved = {}   # player_name -> (player_id, prop_lines)
     skipped_no_id = []
     for player_name, prop_lines in simple_props.items():
-        player_id = player_id_map.get(player_name)
+        player_id = norm_id_map.get(normalize_name(player_name))
         if not player_id:
             player_id = fetcher.find_player_id(player_name, active_players)
         if player_id:
@@ -362,7 +363,8 @@ def get_player_picks(player_name):
     try:
         all_predictions, raw_odds = generate_all_picks()
         
-        player_picks = [p for p in all_predictions if p['player_name'].lower() == player_name.lower()]
+        target = normalize_name(player_name)
+        player_picks = [p for p in all_predictions if normalize_name(p['player_name']) == target]
         
         if not player_picks:
             return jsonify({
@@ -447,13 +449,13 @@ def _filter_players_today(players: list) -> list:
     if not raw_odds:
         return players
 
-    today_names = {name.lower() for name in raw_odds}
-    filtered = [p for p in players if p['name'].lower() in today_names]
+    today_names = {normalize_name(name) for name in raw_odds}
+    filtered = [p for p in players if normalize_name(p['name']) in today_names]
 
     picks_data = picks_cache.get('data')
     if picks_data:
-        players_with_picks = {p['player_name'].lower() for p in picks_data}
-        return [{**p, 'has_picks': p['name'].lower() in players_with_picks} for p in filtered]
+        players_with_picks = {normalize_name(p['player_name']) for p in picks_data}
+        return [{**p, 'has_picks': normalize_name(p['name']) in players_with_picks} for p in filtered]
 
     return [{**p, 'has_picks': True} for p in filtered]
 

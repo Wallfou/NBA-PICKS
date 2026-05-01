@@ -28,6 +28,16 @@ def _normalize_abbr(abbr: str) -> str:
     return TEAM_ABBR_OVERRIDES.get(abbr, abbr)
 
 
+# Generational suffixes the Odds API and ESPN format inconsistently
+# "Tim Hardaway Jr" vs "Tim Hardaway Jr."
+_NAME_SUFFIXES = {"jr", "sr", "ii", "iii", "iv"}
+
+
+def normalize_name(name: str) -> str:
+    """Lowercase, strip periods/commas, used for cross-source name comparison."""
+    return (name or "").lower().replace(".", "").replace(",", "").strip()
+
+
 def _to_float(value, default=0.0):
     try:
         return float(value)
@@ -219,15 +229,16 @@ class NBAFetcher:
         """Look up an ESPN player ID by display name. Checks the pre-fetched list first,
         then falls back to ESPN's search endpoint for players not in the season-stats list
         (e.g., injured players who haven't played yet)."""
-        target = name.lower().strip()
+        target = normalize_name(name)
         for p in players:
-            if p["name"].lower() == target:
+            if normalize_name(p["name"]) == target:
                 return p["id"]
-        parts = target.split()
+        # Fuzzy: match by last name, ignoring generational suffixes ("Jr", "III", ...)
+        parts = [t for t in target.split() if t not in _NAME_SUFFIXES]
         if parts:
             last = parts[-1]
             for p in players:
-                if last in p["name"].lower():
+                if last in normalize_name(p["name"]):
                     return p["id"]
 
         try:
@@ -240,7 +251,7 @@ class NBAFetcher:
             resp.raise_for_status()
             items = resp.json().get("items") or []
             for item in items:
-                if item.get("league") == "nba" and (item.get("displayName") or "").lower() == target:
+                if item.get("league") == "nba" and normalize_name(item.get("displayName") or "") == target:
                     return int(item["id"])
             for item in items:
                 if item.get("league") == "nba":
